@@ -259,7 +259,8 @@ const I = {
   gear: svg('<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>'),
   palette: svg('<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>'),
   clock: svg('<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>'),
-};
+  shield: svg('<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/>'),
+};;
 /* Fallback para atributos onerror (dentro de HTML gerado) */
 window.I_tv = I.tv;
 
@@ -451,7 +452,7 @@ function renderSlide() {
   $('heroTitle').textContent = s[0];
   $('heroText').textContent = s[1];
   const art = $('heroArt');
-  art.innerHTML = s[2] === null ? `<img src="${esc(s[3])}" alt="" referrerpolicy="no-referrer" style="max-width:80%;max-height:70%;object-fit:contain" onerror="this.outerHTML=window.I_tv">` : s[2];
+  art.innerHTML = s[2] === null ? `<img src="${esc(s[3])}" alt="${esc(s[0])}" class="hero-logo-img" referrerpolicy="no-referrer" onerror="this.outerHTML=window.I_tv">` : s[2];
   art.dataset.id = s[4] || '';
   /* A telinha mantém o canal a tocar em silêncio (mini preview em direto). */
   const rch = state.recents.length ? findChannel(s[4] || '') : null;
@@ -520,7 +521,7 @@ function channelCard(c) {
   const cover = thumb ? `<div class="card-cover"><img src="${esc(thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>` : '';
   const country = detectChannelCountry(c);
   const flagBadge = country ? `<span class="badge flag" title="${esc(country.name)}">${renderFlag(country.code, country.flag, 16)}</span>` : '';
-  return `<article class="app-card" data-ch="${esc(c.id)}">
+  return `<article class="app-card" data-ch="${esc(c.id)}" tabindex="0" role="button" aria-label="${esc(c.name)}">
     ${cover}
     <div class="badges">${flagBadge}<span class="badge star" data-fav="${esc(c.id)}" title="Favorito">${fav ? I.star : I.starO}</span></div>
     <div class="card-preview"></div>
@@ -736,10 +737,24 @@ function renderCards() {
   cat.querySelectorAll('.car-arrow').forEach(b => b.onclick = () => {
     carEl.scrollBy({ left: +b.dataset.dir * pageSize(), behavior: 'smooth' });
   });
-  cat.querySelectorAll('.card-btn').forEach(b => b.onclick = () => {
+  cat.querySelectorAll('.app-card').forEach(card => {
+    card.onclick = (e) => {
+      if (e.target.closest('.badge.star')) return;
+      const ch = findChannel(card.dataset.ch); if (ch) openChannelModal(ch);
+    };
+    card.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 29443) {
+        e.preventDefault();
+        const ch = findChannel(card.dataset.ch); if (ch) openChannelModal(ch);
+      }
+    };
+  });
+  cat.querySelectorAll('.card-btn').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
     const ch = findChannel(b.dataset.id); if (ch) openChannelModal(ch);
   });
-  cat.querySelectorAll('.badge.star').forEach(b => b.onclick = () => {
+  cat.querySelectorAll('.badge.star').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
     const ch = findChannel(b.dataset.fav); if (ch) toggleFavorite(ch);
   });
   bindPreviews();
@@ -750,6 +765,248 @@ function findChannel(id) {
     || state.favorites.find(c => c.id === id)
     || state.recents.find(c => c.id === id) || null;
 }
+
+/* Retorna a lista de canais atualmente navegável */
+function getActiveChannelsList() {
+  const searchEl = $('searchInput');
+  const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  let list = state.channels;
+  if (state.activeTab && state.activeTab !== 'all') {
+    list = list.filter(c => (c.sources.find(s => s.groupTitle) || {}).groupTitle === state.activeTab);
+  }
+  if (q) {
+    list = list.filter(c => c.name.toLowerCase().includes(q) || (c.sources[0]?.groupTitle || '').toLowerCase().includes(q));
+  }
+  return (list && list.length) ? list : state.channels;
+}
+
+/* Troca para o canal vizinho (+1 ou -1) - controle de TV ou botões Próx/Ant */
+function playNeighborChannel(offset) {
+  const list = getActiveChannelsList();
+  if (!list || !list.length || !state.current) return;
+  const idx = list.findIndex(c => c.id === state.current.id);
+  if (idx === -1) return;
+  const nextIdx = (idx + offset + list.length) % list.length;
+  openChannelModal(list[nextIdx]);
+}
+
+/* Alterna tela cheia nativa no Player (compatível com Android, iOS Safari e Smart TV) */
+function toggleVideoFullscreen() {
+  const v = $('pv');
+  if (!v) return;
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  } else {
+    if (v.requestFullscreen) {
+      v.requestFullscreen().catch(() => {});
+    } else if (v.webkitRequestFullscreen) {
+      v.webkitRequestFullscreen();
+    } else if (v.webkitEnterFullscreen) { // iOS Safari iPhone
+      v.webkitEnterFullscreen();
+    } else if (v.msRequestFullscreen) {
+      v.msRequestFullscreen();
+    }
+  }
+}
+
+/* ================= Gestão de Anúncios (HilltopAds / Pre-roll VAST) ================= */
+const adSettings = {
+  get enabled() { return store.get('playtv.ad_enabled', true); },
+  set enabled(v) { store.set('playtv.ad_enabled', !!v); },
+
+  get frequency() { return store.get('playtv.ad_frequency', 3); },
+  set frequency(v) { store.set('playtv.ad_frequency', Math.max(1, parseInt(v || 3, 10))); },
+
+  get skipSeconds() { return store.get('playtv.ad_skip_seconds', 5); },
+  set skipSeconds(v) { store.set('playtv.ad_skip_seconds', Math.max(0, parseInt(v || 5, 10))); },
+
+  get vastUrl() {
+    return store.get('playtv.ad_vast_url', '');
+  },
+  set vastUrl(v) { store.set('playtv.ad_vast_url', String(v || '').trim()); },
+
+  get directUrl() {
+    return store.get('playtv.ad_direct_url', '');
+  },
+  set directUrl(v) { store.set('playtv.ad_direct_url', String(v || '').trim()); },
+};
+
+// Sincroniza configurações globais do backend Cloudflare se disponível
+async function syncGlobalAdConfig() {
+  try {
+    const res = await fetch('/api/ads/config');
+    if (res.ok) {
+      const cfg = await res.json();
+      if (cfg) {
+        if (typeof cfg.enabled === 'boolean') adSettings.enabled = cfg.enabled;
+        if (cfg.frequency) adSettings.frequency = cfg.frequency;
+        if (cfg.skipSeconds) adSettings.skipSeconds = cfg.skipSeconds;
+        if (cfg.vastUrl) adSettings.vastUrl = cfg.vastUrl;
+        if (cfg.directUrl) adSettings.directUrl = cfg.directUrl;
+      }
+    }
+  } catch (_) {}
+}
+
+let adSwitchCounter = parseInt(sessionStorage.getItem('playtv.ad_counter') || '0', 10);
+let adSafetyTimer = null;
+let adCountdownInterval = null;
+let currentAdVideo = null;
+
+function shouldPlayAd() {
+  if (!adSettings.enabled) return false;
+  // Exibe no início (0) e a cada 3 canais trocados (ou na frequência configurada)
+  const isTarget = (adSwitchCounter === 0) || (adSwitchCounter % adSettings.frequency === 0);
+  adSwitchCounter++;
+  sessionStorage.setItem('playtv.ad_counter', String(adSwitchCounter));
+  return isTarget;
+}
+
+function stopAd() {
+  if (adSafetyTimer) { clearTimeout(adSafetyTimer); adSafetyTimer = null; }
+  if (adCountdownInterval) { clearInterval(adCountdownInterval); adCountdownInterval = null; }
+  const overlay = $('adOverlay');
+  if (overlay) overlay.hidden = true;
+  if (currentAdVideo) {
+    try {
+      currentAdVideo.pause();
+      currentAdVideo.removeAttribute('src');
+      currentAdVideo.load();
+    } catch (_) {}
+    currentAdVideo = null;
+  }
+}
+
+async function fetchVastAd(vastUrl) {
+  try {
+    const res = await fetch(vastUrl, { redirect: 'follow' });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    
+    // Suporte a redirecionamento VAST Wrapper
+    const wrapper = xml.querySelector('VASTAdTagURI');
+    if (wrapper && wrapper.textContent.trim()) {
+      return fetchVastAd(wrapper.textContent.trim());
+    }
+
+    const mediaFiles = xml.querySelectorAll('MediaFile');
+    let videoUrl = '';
+    for (const mf of mediaFiles) {
+      const type = (mf.getAttribute('type') || '').toLowerCase();
+      const url = mf.textContent.trim();
+      if (url && (type.includes('mp4') || type.includes('webm') || url.includes('.mp4') || !videoUrl)) {
+        videoUrl = url;
+        if (type.includes('mp4') || url.includes('.mp4')) break;
+      }
+    }
+
+    const clickThrough = xml.querySelector('ClickThrough')?.textContent.trim() || '';
+    if (videoUrl) {
+      return { videoUrl, clickThrough };
+    }
+  } catch (err) {
+    console.warn('HilltopAds VAST parse:', err);
+  }
+  return null;
+}
+
+async function playPreRollAd(ch, onDone) {
+  stopAd();
+  const overlay = $('adOverlay');
+  const adVideo = $('adVideo');
+  const skipBtn = $('adSkipBtn');
+  const learnMoreBtn = $('adLearnMore');
+  const pStatus = $('pStatus');
+
+  if (!overlay || !adVideo || !skipBtn) {
+    onDone();
+    return;
+  }
+
+  // HilltopAds DirectLink: aciona ao iniciar
+  if (adSettings.directUrl && Math.random() < 0.4) {
+    try {
+      window.open(adSettings.directUrl, '_blank', 'noopener,noreferrer');
+    } catch (_) {}
+  }
+
+  currentAdVideo = adVideo;
+  overlay.hidden = false;
+  if (pStatus) pStatus.textContent = 'Carregando anúncio HilltopAds…';
+
+  let finished = false;
+  const finishAd = () => {
+    if (finished) return;
+    finished = true;
+    stopAd();
+    onDone();
+  };
+
+  // Timeout de segurança (4.5s): se a rede ou a HilltopAds falhar, abre o canal ao vivo
+  adSafetyTimer = setTimeout(finishAd, 4500);
+
+  let adData = null;
+  if (adSettings.vastUrl) {
+    adData = await fetchVastAd(adSettings.vastUrl).catch(() => null);
+  }
+
+  // Se não tiver VAST configurado ou se falhar, utiliza vídeo de demonstração
+  const videoSrc = (adData && adData.videoUrl)
+    ? adData.videoUrl
+    : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+
+  const clickUrl = (adData && adData.clickThrough)
+    ? adData.clickThrough
+    : (adSettings.directUrl || 'https://hilltopads.com');
+
+  if (learnMoreBtn) {
+    learnMoreBtn.href = clickUrl;
+    learnMoreBtn.hidden = !clickUrl;
+  }
+
+  let remaining = adSettings.skipSeconds;
+  skipBtn.disabled = true;
+  skipBtn.textContent = `Pular em ${remaining}s`;
+  skipBtn.classList.remove('ready');
+
+  if (adCountdownInterval) clearInterval(adCountdownInterval);
+  adCountdownInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(adCountdownInterval);
+      skipBtn.disabled = false;
+      skipBtn.innerHTML = 'Pular anúncio ⏭';
+      skipBtn.classList.add('ready');
+      if (document.body.classList.contains('is-tv')) {
+        skipBtn.focus();
+      }
+    } else {
+      skipBtn.textContent = `Pular em ${remaining}s`;
+    }
+  }, 1000);
+
+  skipBtn.onclick = (e) => {
+    e.stopPropagation();
+    finishAd();
+  };
+
+  adVideo.src = videoSrc;
+  adVideo.onended = finishAd;
+  adVideo.onerror = finishAd;
+  adVideo.onplaying = () => {
+    if (adSafetyTimer) { clearTimeout(adSafetyTimer); adSafetyTimer = null; }
+  };
+
+  try {
+    await adVideo.play();
+  } catch (_) {
+    adVideo.muted = true;
+    adVideo.play().catch(finishAd);
+  }
+}
+
 /* ================= Modal: player (player.dart simplificado) ================= */
 function openChannelModal(ch) {
   stopAllPreviews(); // liberta os previews do carrossel durante a reprodução
@@ -760,13 +1017,38 @@ function openChannelModal(ch) {
   const flagHtml = country ? renderFlag(country.code, country.flag, 24) + ' ' : '';
   modalContent.innerHTML = `
     <h2>${flagHtml}${esc(ch.name)}</h2>
-    <video class="ch-video" id="pv" controls autoplay playsinline></video>
+    <div class="video-container" id="videoContainer">
+      <video class="ch-video" id="pv" controls autoplay playsinline webkit-playsinline x5-playsinline></video>
+      <div class="ad-overlay" id="adOverlay" hidden>
+        <video class="ad-video" id="adVideo" playsinline webkit-playsinline></video>
+        <div class="ad-top-bar">
+          <span class="ad-badge">Publicidade</span>
+          <span class="ad-countdown" id="adCountdown">HilltopAds</span>
+        </div>
+        <div class="ad-bottom-bar">
+          <a class="ad-learn-more" id="adLearnMore" target="_blank" rel="noopener noreferrer" hidden>Visitar Anunciante ↗</a>
+          <button class="ad-skip-btn" id="adSkipBtn" disabled>Pular em 5s</button>
+        </div>
+      </div>
+    </div>
+    <div class="player-nav-bar">
+      <button class="player-btn" id="mPrevCh" title="Canal anterior (Seta ↑)"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg> Anterior</button>
+      <button class="player-btn primary" id="mFullscreen" title="Tela Cheia (F)"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg> Tela Cheia</button>
+      <button class="player-btn" id="mNextCh" title="Próximo canal (Seta ↓)">Próximo <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+    </div>
     <p id="pStatus">A carregar…</p>
-    <button class="card-btn" id="mFav">${fav ? I.star + ' Remover dos favoritos' : I.starO + ' Adicionar aos favoritos'}</button>
-    ${ch.sources.length > 1 ? `<button class="card-btn" id="mNextSrc" style="margin-top:8px">${I.shuffle} Próxima fonte (1/${ch.sources.length})</button>` : ''}`;
+    <div class="modal-buttons-row">
+      <button class="card-btn" id="mFav">${fav ? I.star + ' Remover dos favoritos' : I.starO + ' Adicionar aos favoritos'}</button>
+      ${ch.sources.length > 1 ? `<button class="card-btn" id="mNextSrc">${I.shuffle} Próxima fonte (${state.sourceIdx + 1}/${ch.sources.length})</button>` : ''}
+    </div>`;
   document.querySelector('.modal').classList.add('wide');
   modalBackdrop.classList.add('open');
   lockBody();
+
+  $('mPrevCh').onclick = () => playNeighborChannel(-1);
+  $('mNextCh').onclick = () => playNeighborChannel(1);
+  $('mFullscreen').onclick = toggleVideoFullscreen;
+
   $('mFav').onclick = () => {
     toggleFavorite(ch);
     $('mFav').innerHTML = isFavorite(ch) ? I.star + ' Remover dos favoritos' : I.starO + ' Adicionar aos favoritos';
@@ -777,7 +1059,20 @@ function openChannelModal(ch) {
     ns.innerHTML = `${I.shuffle} Próxima fonte (${state.sourceIdx + 1}/${ch.sources.length})`;
     loadSource();
   };
-  loadSource();
+
+  // Programação de anúncios HilltopAds: no início e a cada 3 trocas de canal
+  if (shouldPlayAd()) {
+    playPreRollAd(ch, () => loadSource());
+  } else {
+    loadSource();
+  }
+
+  setTimeout(() => {
+    const fs = $('mFullscreen');
+    if (fs && (document.body.classList.contains('is-tv') || window.innerWidth >= 1200)) {
+      fs.focus();
+    }
+  }, 120);
 }
 
 function loadSource(direct = false) {
@@ -820,19 +1115,131 @@ function loadSource(direct = false) {
     v.src = targetUrl;
     v.play().catch(() => {});
   }
-  v.onplaying = () => { $('pStatus').textContent = `${(src.groupTitle || 'Canal')} · fonte ${state.sourceIdx + 1}/${ch.sources.length}`; };
+  v.onplaying = () => {
+    $('pStatus').textContent = `${(src.groupTitle || 'Canal')} · fonte ${state.sourceIdx + 1}/${ch.sources.length}`;
+    sendHeartbeat();
+  };
   v.onerror = () => { $('pStatus').textContent = 'Falha ao abrir o stream — tenta outra fonte.'; };
 }
 function destroyHls() { if (hls) { try { hls.destroy(); } catch (_) {} hls = null; } }
 
 function closeModal() {
+  stopAd();
   modalBackdrop.classList.remove('open');
   document.body.classList.remove('modal-open');
-  document.querySelector('.modal').classList.remove('wide', 'tall');
+  document.querySelector('.modal').classList.remove('wide', 'tall', 'terms-modal');
   const v = $('pv'); if (v) { v.pause(); v.removeAttribute('src'); v.load(); }
   destroyHls(); state.current = null;
 }
 const lockBody = () => document.body.classList.add('modal-open');
+
+
+/* ================= Modal: Termos de Uso e Política de Privacidade (LGPD) ================= */
+function openTermsModal() {
+  closeModal();
+  modalContent.innerHTML = `
+    <div class="terms-modal-wrapper">
+      <div class="terms-header">
+        <div class="terms-title-wrap">
+          <div class="terms-icon-shield">
+            ${I.shield}
+          </div>
+          <div>
+            <h2>Termos de Uso & Privacidade</h2>
+            <p class="terms-sub">Transparência jurídica, isenção de responsabilidade e conformidade LGPD</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="terms-badges">
+        <span class="terms-badge green">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          Conformidade LGPD (Lei 13.709/2018)
+        </span>
+        <span class="terms-badge blue">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          Zero Coleta de Dados Pessoais
+        </span>
+        <span class="terms-badge purple">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          Mero Indexador Aberto (Sem Hospedagem)
+        </span>
+      </div>
+
+      <div class="terms-body">
+        <section class="terms-section">
+          <h3><span class="sec-num">1</span> Natureza Jurídica do Serviço e Não Hospedagem</h3>
+          <p>
+            O <strong>Play TV</strong> opera exclusivamente como uma interface cliente web de reprodução multimídia e indexação de links públicos da internet.
+          </p>
+          <ul>
+            <li><strong>Inexistência de Servidores de Streaming:</strong> O Play TV <strong>NÃO armazena, NÃO hospeda, NÃO faz upload, NÃO transcodifica e NÃO retransmite</strong> qualquer sinal de canal de televisão, fluxo de vídeo ou áudio. A plataforma não possui servidores próprios de mídia.</li>
+            <li><strong>Origem Aberta e Pública dos Links:</strong> Todo o catálogo, logotipos e fluxos HLS (.m3u8) exibidos provêm de fontes públicas abertas e gratuitas disponíveis livremente na internet, organizadas de forma comunitária e voluntária em repositórios abertos (como o projeto público internacional <em>iptv-org</em> no GitHub) e diretamente por emissoras de sinal aberto.</li>
+            <li><strong>Marco Civil da Internet (Lei nº 12.965/2014):</strong> A aplicação atua em estrita consonância com o Artigo 19 do Marco Civil da Internet como mera intermediadora de conexões técnicas e provedora de interface de agregação de hiperlinks públicos já existentes.</li>
+          </ul>
+        </section>
+
+        <section class="terms-section">
+          <h3><span class="sec-num">2</span> Política de Privacidade e Proteção de Dados (LGPD)</h3>
+          <p>
+            Em total observância à Lei Geral de Proteção de Dados Pessoais (Lei Federal nº 13.709/2018 - LGPD), garantimos transparência e minimização total de dados:
+          </p>
+          <ul>
+            <li><strong>Zero Coleta de Dados Pessoais:</strong> O Play TV <strong>não solicita, não cadastra, não coleta e não armazena</strong> nenhum dado pessoal de identificação civil (como nome, CPF, e-mail, telefone, biometria ou geolocalização exata), conforme preconizam os artigos 5º e 11 da LGPD.</li>
+            <li><strong>Ausência de Rastreamento ou Perfilamento (No Profiling):</strong> Não realizamos monitoramento comportamental entre sites (cross-site tracking), não criamos perfis de consumo para venda e não comercializamos nenhuma informação com corretores de dados (data brokers).</li>
+            <li><strong>Armazenamento Local Exclusivo no Aparelho (Client-Side Storage):</strong> As preferências do usuário (como canais favoritos, último país filtrado, canais assistidos recentemente e customizações visuais) ficam gravadas <strong>estritamente no armazenamento local do navegador (LocalStorage)</strong> do próprio aparelho do usuário. Tais informações nunca são transmitidas a servidores externos da plataforma e podem ser eliminadas a qualquer momento pelo usuário limpando os dados de navegação ou através da opção "Limpar" no menu.</li>
+          </ul>
+        </section>
+
+        <section class="terms-section">
+          <h3><span class="sec-num">3</span> Publicidade de Terceiros e Monetização</h3>
+          <p>
+            Para custear despesas técnicas com infraestrutura de servidores e preservar o acesso integralmente gratuito aos usuários, a plataforma pode veicular anúncios publicitários pontuais intermediados por redes de publicidade terceirizadas (como HilltopAds).
+          </p>
+          <p>
+            O Play TV <strong>não transfere dados pessoais</strong> dos usuários para anunciantes. A exibição é programática/contextual e quaisquer cookies técnicos ou métricas de entrega operam sob as diretrizes de privacidade independentes de cada anunciante.
+          </p>
+        </section>
+
+        <section class="terms-section">
+          <h3><span class="sec-num">4</span> Direitos Autorais e Procedimento de Desindexação (Notice & Take-Down)</h3>
+          <p>
+            O Play TV preza pelo respeito absoluto à Lei de Direitos Autorais (Lei Federal nº 9.610/1998) e às convenções internacionais de propriedade intelectual.
+          </p>
+          <p>
+            Caso qualquer emissora, distribuidora ou titular legítimo de direitos autorais identifique algum canal ou link público indexado que deseje desindexar ou bloquear:
+          </p>
+          <ul>
+            <li>Disponibilizamos canal de atendimento expresso para <strong>desindexação imediata</strong>.</li>
+            <li>Basta enviar notificação formal para o e-mail: <strong style="color:#60a5fa">contato@playtv.app</strong> indicando o canal e comprovação de titularidade. A desindexação do catálogo é processada de prontidão.</li>
+          </ul>
+        </section>
+
+        <section class="terms-section">
+          <h3><span class="sec-num">5</span> Isenção de Garantias e Responsabilidade</h3>
+          <p>
+            O serviço é fornecido gratuitamente "como está" (<em>as-is</em>), sem qualquer garantia de disponibilidade ininterrupta, qualidade de transmissão ou perenidade de sinais mantidos por terceiros na internet. O usuário reconhece que o uso da plataforma se dá para fins lícitos de entretenimento pessoal.
+          </p>
+        </section>
+      </div>
+
+      <div class="terms-footer">
+        <span class="terms-footer-info">Play TV • Em conformidade com a LGPD (Lei 13.709/2018)</span>
+        <button class="card-btn primary" id="btnTermsAccept">Entendi e Concordo</button>
+      </div>
+    </div>
+  `;
+  document.querySelector('.modal').classList.add('terms-modal');
+  modalBackdrop.classList.add('open');
+  lockBody();
+
+  const btnAccept = $('btnTermsAccept');
+  if (btnAccept) {
+    btnAccept.onclick = closeModal;
+    btnAccept.focus();
+  }
+}
+window.openTermsModal = openTermsModal;
 
 /* ================= Modal: fontes (playlist_dialog + preset_source_dialog) ================= */
 function openSourcesModal() {
@@ -892,7 +1299,22 @@ function openAllChannelsModal() {
   const grid = $('allchGrid');
   const input = $('allchInput');
   const bind = () => {
-    grid.querySelectorAll('.card-btn').forEach(b => b.onclick = () => {
+    grid.querySelectorAll('.app-card').forEach(card => {
+      card.onclick = (e) => {
+        if (e.target.closest('.badge.star')) return;
+        const ch = findChannel(card.dataset.ch);
+        if (ch) { closeModal(); openChannelModal(ch); }
+      };
+      card.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 29443) {
+          e.preventDefault();
+          const ch = findChannel(card.dataset.ch);
+          if (ch) { closeModal(); openChannelModal(ch); }
+        }
+      };
+    });
+    grid.querySelectorAll('.card-btn').forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
       const ch = findChannel(b.dataset.id);
       if (ch) { closeModal(); openChannelModal(ch); }
     });
@@ -950,6 +1372,8 @@ function openMenuModal() {
     <h3>${I.palette} Interface</h3>
     <div class="menu-row"><span class="grow">Tamanho dos cartões de canal</span><span>${sizeRow}</span></div>
     <div class="menu-row"><span class="grow">Cor de destaque</span><span>${colorRow}</span></div>
+    <h3>${I.shield} Legal & Privacidade</h3>
+    <div class="menu-row"><span class="grow">Termos de Uso e Política de Privacidade <small>(Conformidade LGPD)</small></span><button class="src-btn primary" id="mTerms">Ler Termos</button></div>
     <h3>${I.clock} Atalhos (no player)</h3>
     <h3>${I.gear} Segurança</h3>
     <div class="menu-row"><span class="grow">Proteger exibição</span><button class="src-btn" style="color:#ef4444;border-color:rgba(239,68,68,0.4)" id="mLockApp">Bloquear Tela / Sair</button></div>
@@ -970,6 +1394,7 @@ function openMenuModal() {
   };
   $('mMini').onclick = () => { settings.miniOnExit = !settings.miniOnExit; saveSettings(); openMenuModal(); };
   if ($('mLockApp')) $('mLockApp').onclick = lockApp;
+  if ($('mTerms')) $('mTerms').onclick = openTermsModal;
   modalContent.querySelectorAll('[data-sleep]').forEach(b => b.onclick = () => {
     setSleep(+b.dataset.sleep); openMenuModal();
   });
@@ -1159,15 +1584,17 @@ function initCountryPicker() {
 
 function init() {
   loadAll();
+  syncGlobalAdConfig();
   $('searchInput').addEventListener('input', renderCards);
   $('prevSlide').onclick = () => { const n = (window._heroSlides || welcomeSlides).length; slide = (slide + n - 1) % n; renderSlide(); };
   $('nextSlide').onclick = () => { const n = (window._heroSlides || welcomeSlides).length; slide = (slide + 1) % n; renderSlide(); };
   $('heroArt').onclick = () => { const ch = findChannel($('heroArt').dataset.id || ''); if (ch) openChannelModal(ch); };
   $('modalClose').onclick = closeModal;
   modalBackdrop.onclick = e => { if (e.target === modalBackdrop) closeModal(); };
+  if ($('btnTerms')) $('btnTerms').onclick = openTermsModal;
   $('btnSources').onclick = openSourcesModal;
   $('btnMenu').onclick = openMenuModal;
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalBackdrop.classList.contains('open')) closeModal(); });
+  setupDeviceFeatures();
 
   applySettings();
   // Deteta o proxy HLS local (se ativo, os streams passam por ele).
@@ -1192,7 +1619,7 @@ function init() {
 /* ================= Autenticação e Tela de Bloqueio ================= */
 const AUTH_KEY = 'playtv.auth_session';
 const VALID_USER = 'admin';
-const VALID_PASS = 'playtv@2026';
+const VALID_PASS = '@Pmpo1516';
 
 function isUserAuthenticated() {
   try {
@@ -1212,6 +1639,7 @@ function unlockApp() {
     appInitialized = true;
     init();
   }
+  startHeartbeat();
 }
 
 function lockApp() {
@@ -1278,3 +1706,243 @@ function setupLockScreen() {
 }
 
 document.addEventListener('DOMContentLoaded', setupLockScreen);
+
+/* ================= Telemetria / Monitoramento de Aparelhos ================= */
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('playtv.device_id');
+    if (!id) {
+      id = 'dev_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36).substring(4);
+      localStorage.setItem('playtv.device_id', id);
+    }
+    return id;
+  } catch (_) {
+    return 'dev_anon';
+  }
+}
+
+function detectClientInfo() {
+  const ua = navigator.userAgent;
+  let type = 'Computador';
+  if (/smart-tv|smarttv|tizen|webos|hbbtv|appletv|googletv|android tv|viera|bravia|netcast/i.test(ua)) type = 'Smart TV';
+  else if (/ipad|tablet/i.test(ua)) type = 'Tablet';
+  else if (/mobile|iphone|android/i.test(ua)) type = 'Celular';
+
+  let os = 'Desconhecido';
+  if (/windows/i.test(ua)) os = 'Windows';
+  else if (/android/i.test(ua)) os = 'Android';
+  else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
+  else if (/macintosh|mac os x/i.test(ua)) os = 'macOS';
+  else if (/linux/i.test(ua)) os = 'Linux';
+  else if (/tizen/i.test(ua)) os = 'Tizen OS';
+  else if (/webos/i.test(ua)) os = 'webOS';
+
+  let browser = 'Web';
+  if (/chrome|crios/i.test(ua) && !/edge|opr/i.test(ua)) browser = 'Chrome';
+  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
+  else if (/firefox|fxios/i.test(ua)) browser = 'Firefox';
+  else if (/edg/i.test(ua)) browser = 'Edge';
+
+  return { type, os, browser };
+}
+
+let heartbeatTimer = null;
+function sendHeartbeat() {
+  if (!kIsHosted) return;
+  const client = detectClientInfo();
+  const chName = state.current ? (state.current.name || 'Assistindo') : 'Navegando';
+
+  fetch('/api/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      deviceId: getDeviceId(),
+      deviceType: client.type,
+      os: client.os,
+      browser: client.browser,
+      channel: chName,
+      isPlaying: !!(state.current && hls),
+    }),
+  }).catch(() => {});
+}
+
+function startHeartbeat() {
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  sendHeartbeat();
+  heartbeatTimer = setInterval(sendHeartbeat, 25000);
+}
+
+/* ================= Suporte Avançado Smart TV & Mobile ================= */
+let isTvDevice = false;
+
+function handleSmartTvDpad(e) {
+  const key = e.key;
+  const code = e.keyCode || e.which;
+
+  const isBack = key === 'Escape' || code === 27 || code === 8 || code === 10009 || code === 461;
+  const isEnter = key === 'Enter' || code === 13 || code === 29443;
+  const isUp = key === 'ArrowUp' || code === 38;
+  const isDown = key === 'ArrowDown' || code === 40;
+  const isLeft = key === 'ArrowLeft' || code === 37;
+  const isRight = key === 'ArrowRight' || code === 39;
+  const isChUp = code === 427 || (isUp && modalBackdrop.classList.contains('open'));
+  const isChDown = code === 428 || (isDown && modalBackdrop.classList.contains('open'));
+  const isPlayPause = key === ' ' || code === 32 || code === 179 || code === 415 || code === 19;
+  const isFullscreenKey = key === 'f' || key === 'F' || code === 70;
+
+  // 1. Se o modal de vídeo estiver aberto:
+  if (modalBackdrop.classList.contains('open')) {
+    if (isBack) {
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    if (isChUp) {
+      e.preventDefault();
+      playNeighborChannel(-1);
+      return;
+    }
+    if (isChDown) {
+      e.preventDefault();
+      playNeighborChannel(1);
+      return;
+    }
+    if (isRight) {
+      const ns = $('mNextSrc');
+      if (ns) { e.preventDefault(); ns.click(); return; }
+    }
+    if (isPlayPause) {
+      const v = $('pv');
+      if (v) {
+        e.preventDefault();
+        v.paused ? v.play().catch(() => {}) : v.pause();
+      }
+      return;
+    }
+    if (isFullscreenKey) {
+      e.preventDefault();
+      toggleVideoFullscreen();
+      return;
+    }
+    return;
+  }
+
+  // 2. Se a tela de bloqueio estiver visível:
+  const lock = $('lockScreen');
+  if (lock && lock.style.display !== 'none') {
+    const focusables = [$('lockUser'), $('lockPass'), $('lockRemember'), $('lockSubmit')].filter(Boolean);
+    const active = document.activeElement;
+    const curIdx = focusables.indexOf(active);
+    if (isDown && curIdx !== -1 && curIdx < focusables.length - 1) {
+      e.preventDefault();
+      focusables[curIdx + 1].focus();
+    } else if (isUp && curIdx > 0) {
+      e.preventDefault();
+      focusables[curIdx - 1].focus();
+    }
+    return;
+  }
+
+  // 3. Dropdown de países
+  if (isBack) {
+    const cd = $('countryDropdown');
+    if (cd && !cd.hidden) {
+      e.preventDefault();
+      closeCountryDropdown();
+      $('btnCountry').focus();
+      return;
+    }
+  }
+
+  // 4. Navegação D-Pad espacial na grade do catálogo:
+  if (isUp || isDown || isLeft || isRight) {
+    if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+      if (isLeft || isRight) return;
+      if (isDown) {
+        e.preventDefault();
+        const firstCard = document.querySelector('.app-card');
+        if (firstCard) firstCard.focus();
+        return;
+      }
+    }
+
+    const focusables = Array.from(document.querySelectorAll(
+      '.app-card, .tab, .highlight, #btnCountry, #btnTerms, #btnMenu, #btnSources, #searchInput, .card-btn, .slide-arrow'
+    )).filter(el => el.offsetParent !== null);
+
+    if (!focusables.length) return;
+
+    const current = document.activeElement;
+    if (!focusables.includes(current)) {
+      e.preventDefault();
+      focusables[0].focus();
+      return;
+    }
+
+    const rCur = current.getBoundingClientRect();
+    const curCenter = { x: rCur.left + rCur.width / 2, y: rCur.top + rCur.height / 2 };
+
+    let bestEl = null;
+    let minDistance = Infinity;
+
+    for (const el of focusables) {
+      if (el === current) continue;
+      const r = el.getBoundingClientRect();
+      const center = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      const dx = center.x - curCenter.x;
+      const dy = center.y - curCenter.y;
+
+      let isCandidate = false;
+      if (isRight && dx > 15) isCandidate = true;
+      else if (isLeft && dx < -15) isCandidate = true;
+      else if (isDown && dy > 15) isCandidate = true;
+      else if (isUp && dy < -15) isCandidate = true;
+
+      if (!isCandidate) continue;
+
+      let dist = (isRight || isLeft)
+        ? Math.abs(dx) + Math.abs(dy) * 2.5
+        : Math.abs(dy) + Math.abs(dx) * 2.5;
+
+      if (dist < minDistance) {
+        minDistance = dist;
+        bestEl = el;
+      }
+    }
+
+    if (bestEl) {
+      e.preventDefault();
+      bestEl.focus();
+      bestEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
+  }
+}
+
+let deviceFeaturesSetup = false;
+function setupDeviceFeatures() {
+  if (deviceFeaturesSetup) return;
+  deviceFeaturesSetup = true;
+
+  const client = detectClientInfo();
+  isTvDevice = client.type === 'Smart TV' ||
+    (window.innerWidth >= 1200 && /tv|smart|tizen|webos|hbbtv/i.test(navigator.userAgent));
+
+  if (isTvDevice) {
+    document.body.classList.add('is-tv');
+
+    // Oculta cursor do mouse após 3s sem mover na TV
+    let mouseTimer = null;
+    window.addEventListener('mousemove', () => {
+      document.body.classList.remove('hide-cursor');
+      if (mouseTimer) clearTimeout(mouseTimer);
+      mouseTimer = setTimeout(() => {
+        document.body.classList.add('hide-cursor');
+      }, 3000);
+    });
+  }
+
+  document.addEventListener('keydown', handleSmartTvDpad);
+}
+
+// Inicializa recursos de dispositivo logo no início
+document.addEventListener('DOMContentLoaded', setupDeviceFeatures);

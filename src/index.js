@@ -87,6 +87,156 @@ export default {
       });
     }
 
+    // 2.1 Rota Heartbeat (telemetria de aparelhos conectados)
+    if (url.pathname === '/api/heartbeat') {
+      if (request.method !== 'POST') {
+        return new Response('Method Not Allowed', { status: 405, headers: corsHeaders() });
+      }
+      try {
+        const body = await request.json().catch(() => ({}));
+        const deviceId = String(body.deviceId || '').trim();
+        if (!deviceId) return new Response('Missing deviceId', { status: 400, headers: corsHeaders() });
+
+        const now = Date.now();
+        const ipHeader = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
+        const country = request.headers.get('cf-ipcountry') || 'BR';
+        const city = request.headers.get('cf-ipcity') || '';
+
+        const updated = {
+          id: deviceId,
+          type: body.deviceType || 'Computador',
+          channel: body.channel || 'Navegando',
+          os: body.os || 'Web',
+          browser: body.browser || '',
+          ip: ipHeader.split(',')[0].trim(),
+          country,
+          city,
+          lastSeen: now,
+        };
+
+        if (!globalThis._devices) globalThis._devices = new Map();
+        globalThis._devices.set(deviceId, updated);
+
+        for (const [id, dev] of globalThis._devices.entries()) {
+          if (now - dev.lastSeen > 65000) globalThis._devices.delete(id);
+        }
+
+        const active = globalThis._devices.size;
+        if (!globalThis._peak || active > globalThis._peak) {
+          globalThis._peak = active;
+          const d = new Date();
+          globalThis._peakTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        return new Response(JSON.stringify({ ok: true, active }), {
+          status: 200,
+          headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500,
+          headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // 2.2 Rota de Estatísticas do Admin
+    if (url.pathname === '/api/admin/stats') {
+      const auth = request.headers.get('authorization') || '';
+      if (!auth.includes('admin_authorized')) {
+        return new Response(JSON.stringify({ error: 'Não autorizado' }), {
+          status: 401,
+          headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!globalThis._devices) globalThis._devices = new Map();
+      const now = Date.now();
+      const activeDevices = [];
+      const deviceCounts = { tv: 0, mobile: 0, desktop: 0 };
+      const channelCounts = {};
+
+      for (const [id, dev] of globalThis._devices.entries()) {
+        if (now - dev.lastSeen <= 65000) {
+          activeDevices.push(dev);
+          if (dev.type === 'Smart TV') deviceCounts.tv++;
+          else if (dev.type === 'Celular' || dev.type === 'Tablet') deviceCounts.mobile++;
+          else deviceCounts.desktop++;
+
+          if (dev.channel && dev.channel !== 'Navegando') {
+            channelCounts[dev.channel] = (channelCounts[dev.channel] || 0) + 1;
+          }
+        } else {
+          globalThis._devices.delete(id);
+        }
+      }
+
+      const ranking = Object.entries(channelCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+
+      const labels = [];
+      const values = [];
+      const currentHour = new Date().getHours();
+      for (let i = 23; i >= 0; i--) {
+        const h = (currentHour - i + 24) % 24;
+        labels.push(`${String(h).padStart(2, '0')}:00`);
+        values.push(0);
+      }
+      values[values.length - 1] = activeDevices.length;
+
+      return new Response(JSON.stringify({
+        onlineCount: activeDevices.length,
+        peak: Math.max(globalThis._peak || 0, activeDevices.length),
+        peakTime: globalThis._peakTime || 'Hoje',
+        topChannel: ranking.length > 0 ? ranking[0] : null,
+        deviceCounts,
+        ranking: ranking.slice(0, 5),
+        devices: activeDevices.sort((a, b) => b.lastSeen - a.lastSeen),
+        chart: { labels, values },
+      }), {
+        status: 200,
+        headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      });
+    }
+
+    // 2.3 Configuração Pública de Anúncios (HilltopAds)
+    if (url.pathname === '/api/ads/config') {
+      if (!globalThis._adConfig) {
+        globalThis._adConfig = {
+          enabled: true,
+          frequency: 3,
+          skipSeconds: 5,
+          vastUrl: '',
+          directUrl: '',
+        };
+      }
+      return new Response(JSON.stringify(globalThis._adConfig), {
+        status: 200,
+        headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' },
+      });
+    }
+
+    // 2.4 Salvar Configuração de Anúncios (Admin HilltopAds)
+    if (url.pathname === '/api/admin/ads') {
+      const auth = request.headers.get('authorization') || '';
+      if (!auth.includes('admin_authorized')) {
+        return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401, headers: corsHeaders() });
+      }
+      const body = await request.json().catch(() => ({}));
+      globalThis._adConfig = {
+        enabled: body.enabled !== false,
+        frequency: Math.max(1, parseInt(body.frequency || 3, 10)),
+        skipSeconds: Math.max(0, parseInt(body.skipSeconds || 5, 10)),
+        vastUrl: String(body.vastUrl || '').trim(),
+        directUrl: String(body.directUrl || '').trim(),
+      };
+      return new Response(JSON.stringify({ ok: true, adConfig: globalThis._adConfig }), {
+        status: 200,
+        headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
+      });
+    }
+
     // 3. Rota /playlist?url=...: baixa a lista de canais M3U e reescreve links de streams
     if (url.pathname === '/playlist') {
       const playlistUrl = url.searchParams.get('url');

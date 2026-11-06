@@ -123,15 +123,42 @@ body {
 }
 .hero-art {
   position: absolute;
-  right: 35px;
-  bottom: 0;
-  width: 105px;
-  height: 132px;
-  border-radius: 8px 8px 0 0;
-  background: linear-gradient(135deg, #b9c6c9, #526d77);
-  display: grid;
-  place-items: center;
-  font-size: 48px;
+  right: 24px;
+  bottom: 14px;
+  width: 90px;
+  height: 52px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  z-index: 4;
+  transition: transform 0.18s ease;
+}
+.hero-art:hover {
+  transform: scale(1.08);
+}
+.hero-art svg {
+  color: #dfe7ee;
+  font-size: 30px;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+}
+.hero-logo-img,
+.hero-card .hero-art img {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
 }
 .slide-arrow {
   border: 0;
@@ -404,8 +431,10 @@ body {
     padding-left: 35px;
   }
   .hero-art {
-    right: 22px;
-    width: 85px;
+    right: 18px;
+    bottom: 10px;
+    width: 76px;
+    height: 44px;
   }
   .catalog {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -999,14 +1028,22 @@ body.modal-open {
 .hero-card .hero-art {
   z-index: 3;
 }
-.hero-card .hero-art img {
+.hero-card .hero-art img,
+.hero-logo-img {
   position: relative;
   z-index: 1;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
 }
 .hero-card .mute-tag {
   position: absolute;
-  right: 44px;
-  bottom: 10px;
+  right: 18px;
+  top: 12px;
   z-index: 5;
   font-size: 10px;
   background: rgba(0, 0, 0, 0.6);
@@ -1516,8 +1553,9 @@ body.modal-open {
   }
   .hero-art {
     right: 12px;
-    width: 70px;
-    height: 100px;
+    bottom: 8px;
+    width: 66px;
+    height: 38px;
   }
 }
 @media (max-width: 420px) {
@@ -1920,4 +1958,680 @@ body.modal-open {
 .lock-btn:active {
   transform: scale(0.98);
 }
+
+/* ================= Compatibilidade Mobile & Smart TV ================= */
+
+/* 1. Indicador de Foco D-Pad para Smart TV & Teclado */
+:focus-visible,
+.app-card:focus-visible,
+.app-card.tv-focused,
+.tab:focus-visible,
+.tab.tv-focused,
+.icon-btn:focus-visible,
+.country-btn:focus-visible,
+.card-btn:focus-visible,
+.player-btn:focus-visible,
+.highlight:focus-visible,
+.modal-close:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px #08a765, 0 0 20px rgba(8, 167, 101, 0.75) !important;
+  transform: scale(1.04) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  z-index: 20 !important;
+}
+
+/* Permite que todo o card seja interativo e focável */
+.app-card {
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.app-card:active {
+  transform: scale(0.98);
+}
+
+/* Barra de ações e controles no Player Modal */
+.player-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 10px;
+  flex-wrap: wrap;
+}
+.player-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #dfe7ee;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1 1 auto;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  min-height: 40px;
+}
+.player-btn:hover {
+  background: rgba(8, 167, 101, 0.18);
+  border-color: rgba(8, 167, 101, 0.4);
+  color: #fff;
+}
+.player-btn.primary {
+  background: var(--accent, #08a765);
+  border-color: var(--accent, #08a765);
+  color: #fff;
+}
+.modal-buttons-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.modal-buttons-row .card-btn {
+  flex: 1 1 auto;
+  margin-top: 0;
+  min-height: 42px;
+}
+
+/* 2. Responsividade para Celulares e Telas Pequenas */
+@media (max-width: 768px) {
+  /* Topbar compacta sem quebrar */
+  .topbar {
+    height: 56px;
+    padding: 0 12px;
+  }
+  .brand {
+    font-size: 17px;
+  }
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    margin-right: 6px;
+  }
+  .top-actions {
+    gap: 8px;
+  }
+  .country-name {
+    display: none; /* Em celulares esconde o texto para não espremer a barra */
+  }
+  .country-btn {
+    padding: 6px 10px;
+  }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    font-size: 18px;
+  }
+
+  /* Padding geral */
+  .content {
+    padding: 12px 10px 40px;
+  }
+
+  /* Categorias / Abas com scroll horizontal suave */
+  .toolbar {
+    margin: 10px 0 12px;
+    gap: 10px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 4px;
+    width: 100%;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .search {
+    width: 100%;
+    padding: 9px 12px;
+  }
+  .search input {
+    font-size: 16px; /* Evita auto-zoom do iOS Safari */
+  }
+
+  /* Painel Hero Recentes e Favoritos em celulares */
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .hero-card {
+    min-height: 110px;
+  }
+  .hero-copy {
+    padding-left: 14px;
+    max-width: 75%;
+  }
+  .hero-copy h2 {
+    font-size: 16px;
+  }
+  .hero-copy p {
+    font-size: 12px;
+  }
+  .hero-art {
+    width: 66px;
+    height: 38px;
+    right: 12px;
+    bottom: 8px;
+  }
+
+  /* Grade do catálogo de canais em celular: 2 colunas nítidas */
+  .allch-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 4px 0 !important;
+  }
+  .app-card {
+    min-height: 150px;
+    padding: 10px 8px;
+  }
+  .app-card .app-name {
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
+  .app-card .card-btn {
+    padding: 7px 4px;
+    font-size: 11.5px;
+  }
+
+  /* Modal de Vídeo no Celular */
+  .modal-backdrop {
+    padding: 8px;
+  }
+  .modal.wide {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+    padding: 16px 12px 18px;
+  }
+  .modal h2 {
+    font-size: 16px;
+    padding-right: 32px;
+    line-height: 1.3;
+  }
+  .ch-video {
+    border-radius: 6px;
+    margin: 4px 0 6px;
+  }
+
+  /* Tela de Bloqueio em telas móveis */
+  .lock-card {
+    padding: 24px 18px;
+    border-radius: 14px;
+    max-width: 360px;
+  }
+  .lock-input {
+    font-size: 16px;
+    padding: 12px 14px 12px 36px;
+  }
+}
+
+@media (max-width: 360px) {
+  .allch-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 3. Modo Paisagem (Landscape) no Celular: Tela quase cheia para vídeo */
+@media (orientation: landscape) and (max-height: 500px) {
+  .modal-backdrop.open {
+    padding: 0;
+    background: #000;
+  }
+  .modal.wide {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 0;
+  }
+  .modal h2,
+  .modal p,
+  .player-nav-bar,
+  .modal-buttons-row {
+    display: none !important;
+  }
+  .modal-close {
+    top: 10px;
+    right: 14px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    z-index: 1000;
+    font-size: 24px;
+  }
+  .ch-video {
+    height: 100vh;
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    object-fit: contain;
+  }
+}
+
+/* 4. Otimizações para Smart TV (10-Foot UI) */
+body.is-tv {
+  font-size: 16px;
+}
+body.is-tv .topbar {
+  height: 80px;
+  padding: 0 45px;
+}
+body.is-tv .brand {
+  font-size: 26px;
+}
+body.is-tv .brand-mark {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+}
+body.is-tv .country-btn {
+  padding: 10px 18px;
+  font-size: 15px;
+}
+body.is-tv .icon-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 22px;
+}
+body.is-tv .app-card {
+  min-height: 220px;
+  padding: 16px;
+  border-width: 2px;
+}
+body.is-tv .app-card .app-name {
+  font-size: 16px;
+}
+body.is-tv .card-btn {
+  padding: 12px 14px;
+  font-size: 15px;
+}
+body.is-tv .modal.wide {
+  max-width: 950px;
+  padding: 28px;
+}
+body.is-tv .modal h2 {
+  font-size: 24px;
+}
+body.is-tv .player-btn {
+  padding: 12px 18px;
+  font-size: 15px;
+  min-height: 48px;
+}
+body.is-tv .app-card:focus-visible,
+body.is-tv .app-card.tv-focused {
+  border-color: #08a765 !important;
+  box-shadow: 0 0 0 4px #08a765, 0 10px 35px rgba(8, 167, 101, 0.85) !important;
+  transform: scale(1.06) !important;
+}
+
+/* Oculta cursor em Smart TV após inatividade */
+body.is-tv.hide-cursor,
+body.is-tv.hide-cursor * {
+  cursor: none !important;
+}
+
+/* ================= Sistema de Publicidade Pre-roll (HilltopAds) ================= */
+.video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 4px 0 8px;
+}
+.video-container .ch-video {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  background: #000;
+}
+.ad-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.ad-overlay[hidden] {
+  display: none !important;
+}
+.ad-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  z-index: 1;
+}
+.ad-top-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  pointer-events: none;
+}
+.ad-badge {
+  background: #f59e0b;
+  color: #000;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ad-countdown {
+  font-size: 12px;
+  color: #f1f5f9;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+.ad-bottom-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  pointer-events: auto;
+}
+.ad-learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background 0.15s;
+}
+.ad-learn-more:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+.ad-skip-btn {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 6px;
+  cursor: not-allowed;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.ad-skip-btn.ready {
+  background: var(--accent, #08a765);
+  border-color: var(--accent, #08a765);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(8, 167, 101, 0.45);
+}
+.ad-skip-btn.ready:hover {
+  filter: brightness(1.1);
+  transform: scale(1.03);
+}
+.ad-skip-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #08a765, 0 0 15px rgba(8, 167, 101, 0.8) !important;
+}
+
+/* ========================================================
+   Termos de Uso e Política de Privacidade (Conformidade LGPD)
+   ======================================================== */
+.modal.terms-modal {
+  max-width: 800px !important;
+  max-height: 88vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 24px 28px !important;
+  border-radius: 12px;
+  background: #131a22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8) !important;
+}
+.terms-modal-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+.terms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 14px;
+}
+.terms-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.terms-icon-shield {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(8, 167, 101, 0.15);
+  border: 1px solid rgba(8, 167, 101, 0.35);
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.terms-title-wrap h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.2px;
+}
+.terms-sub {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: #8da2b5;
+}
+.terms-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.terms-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.2px;
+}
+.terms-badge.green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.terms-badge.blue {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.terms-badge.purple {
+  background: rgba(168, 85, 247, 0.12);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+.terms-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: #31404f #131a22;
+}
+.terms-body::-webkit-scrollbar {
+  width: 6px;
+}
+.terms-body::-webkit-scrollbar-thumb {
+  background: #31404f;
+  border-radius: 3px;
+}
+.terms-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+.terms-section:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.terms-section h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.terms-section .sec-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent, #08a765);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.terms-section p {
+  margin: 0 0 8px;
+  color: #94a3b8;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.terms-section p:last-child {
+  margin-bottom: 0;
+}
+.terms-section ul {
+  margin: 8px 0 8px 18px;
+  padding: 0;
+  color: #94a3b8;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.terms-section li {
+  margin-bottom: 6px;
+}
+.terms-section strong {
+  color: #e2e8f0;
+}
+.terms-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.terms-footer-info {
+  font-size: 11.5px;
+  color: #64748b;
+}
+.terms-footer .card-btn {
+  margin-top: 0;
+  width: auto;
+  min-width: 170px;
+  padding: 10px 20px;
+}
+
+@media (max-width: 600px) {
+  .modal.terms-modal {
+    max-height: 92vh !important;
+    padding: 18px 14px !important;
+  }
+  .terms-title-wrap h2 {
+    font-size: 17px;
+  }
+  .terms-header {
+    gap: 10px;
+  }
+  .terms-badges {
+    gap: 6px;
+  }
+  .terms-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  .terms-section {
+    padding: 12px;
+  }
+  .terms-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .terms-footer .card-btn {
+    width: 100%;
+  }
+}
+
 

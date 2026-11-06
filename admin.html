@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1017">
+  <title>Play TV — Painel Administrativo</title>
+  <style>
+    :root {
+      --bg: #090e15;
+      --card-bg: #121a24;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #08a765;
+      --accent-glow: rgba(8, 167, 101, 0.25);
+      --text: #f0f4f8;
+      --text-muted: #8292a2;
+      --text-dim: #546474;
+      --blue: #38bdf8;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Modal de Login Admin */
+    .admin-auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 13, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .admin-auth-card {
+      max-width: 380px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 30px 24px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+    .admin-auth-card h2 {
+      font-size: 20px;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+    .admin-auth-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .admin-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #090e15;
+      border: 1px solid #222f3e;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .admin-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+    .admin-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+    }
+    .admin-btn:hover { filter: brightness(1.1); }
+    .admin-btn:active { transform: scale(0.98); }
+    .auth-error {
+      color: var(--red);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    /* Header */
+    .top-header {
+      background: rgba(18, 26, 36, 0.85);
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(10px);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      background: rgba(8, 167, 101, 0.15);
+      border: 1px solid rgba(8, 167, 101, 0.35);
+      color: var(--accent);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(8, 167, 101, 0.7); }
+      70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(8, 167, 101, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(8, 167, 101, 0); }
+    }
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      user-select: none;
+      cursor: pointer;
+    }
+    .toggle-wrap input { accent-color: var(--accent); cursor: pointer; }
+    .btn-action {
+      background: #1b2635;
+      border: 1px solid var(--card-border);
+      color: #d1dce7;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.12s;
+    }
+    .btn-action:hover { background: #243346; color: #fff; }
+
+    /* Layout do Conteúdo */
+    .dashboard-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* KPI Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      opacity: 0.8;
+    }
+    .kpi-card.blue::before { background: var(--blue); }
+    .kpi-card.orange::before { background: var(--orange); }
+    .kpi-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .kpi-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Seções e Cards */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Gráfico de Picos (Canvas) */
+    .chart-wrap {
+      width: 100%;
+      height: 220px;
+      position: relative;
+    }
+    canvas#peaksChart {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Tabela de Dispositivos */
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table.devices-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    table.devices-table th {
+      padding: 12px 14px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid #1f2c3c;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.devices-table td {
+      padding: 14px;
+      border-bottom: 1px solid #182330;
+      color: #d8e2ec;
+      vertical-align: middle;
+    }
+    table.devices-table tr:last-child td { border-bottom: 0; }
+    table.devices-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .device-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #182330;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      color: var(--blue);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(8, 167, 101, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(8, 167, 101, 0.3);
+    }
+    .channel-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: #162230;
+      border: 1px solid #26384d;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #e2e8f0;
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .empty-state svg {
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    /* Two-col layout */
+    .two-cols {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .two-cols { grid-template-columns: 1fr; }
+      .dashboard-container { padding: 14px; }
+      .header-actions { gap: 8px; }
+    }
+
+    /* Top canais lista */
+    .top-channel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #1a2533;
+    }
+    .top-channel-item:last-child { border-bottom: 0; }
+    .top-channel-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .top-channel-bar-wrap {
+      flex: 1;
+      margin: 0 16px;
+      height: 6px;
+      background: #182330;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .top-channel-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Tela de Login do Admin (sem acesso público) -->
+  <div id="adminAuthOverlay" class="admin-auth-overlay">
+    <div class="admin-auth-card">
+      <div style="width:48px;height:48px;border-radius:12px;background:rgba(8,167,101,0.2);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      </div>
+      <h2>Painel Administrativo</h2>
+      <p>Área restrita de monitoramento e controle de aparelhos.</p>
+      <form id="adminLoginForm" onsubmit="return false;">
+        <input type="text" id="adminUser" class="admin-input" placeholder="Usuário administrador" required autofocus>
+        <input type="password" id="adminPass" class="admin-input" placeholder="Senha" required>
+        <button type="submit" class="admin-btn">Entrar no Dashboard</button>
+        <div id="authErrorMsg" class="auth-error" hidden>Credenciais inválidas.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="top-header">
+    <div class="brand-wrap">
+      <span class="brand-badge"><span class="pulse-dot"></span> Admin Live</span>
+      <h1 style="font-size:17px;font-weight:700">Play TV • Analytics</h1>
+    </div>
+    <div class="header-actions">
+      <label class="toggle-wrap">
+        <input type="checkbox" id="chkAutoRefresh" checked>
+        <span>Tempo Real (5s)</span>
+      </label>
+      <button class="btn-action" id="btnManualRefresh" title="Recarregar dados">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-8 8s3.57 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        <span>Atualizar</span>
+      </button>
+      <button class="btn-action" id="btnLogout" title="Sair do painel" style="color:#ef4444;border-color:rgba(239,68,68,0.3)">
+        <span>Sair</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal do Dashboard -->
+  <main class="dashboard-container">
+
+    <!-- KPI Grid -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">
+          <span>Aparelhos Conectados</span>
+          <span class="pulse-dot"></span>
+        </div>
+        <div class="kpi-value"><span id="valOnline">0</span> <span style="font-size:14px;color:#34d399;font-weight:600">ativos</span></div>
+        <div class="kpi-desc">Dispositivos transmitindo sinal agora</div>
+      </div>
+
+      <div class="kpi-card orange">
+        <div class="kpi-title">
+          <span>Pico de Uso Registrado</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" color="var(--orange)"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+        </div>
+        <div class="kpi-value"><span id="valPeak">0</span> <span style="font-size:14px;color:var(--orange);font-weight:600">simultâneos</span></div>
+        <div class="kpi-desc" id="valPeakTime">Maior audiência simultânea</div>
+      </div>
+
+      <div class="kpi-card blue">
+        <div class="kpi-title">
+          <span>Canal Líder no Momento</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" color="var(--blue)"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+        </div>
+        <div class="kpi-value" style="font-size:22px" id="valTopChannel">—</div>
+        <div class="kpi-desc" id="valTopChannelCount">Audiência concentrada</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">
+          <span>Tipos de Aparelhos</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 6h16v10H4z M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-3v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div class="kpi-value" style="font-size:16px;font-weight:600;gap:12px;margin-top:6px" id="valDeviceTypes">
+          <span>📺 0 TV</span>
+          <span>📱 0 Cel</span>
+          <span>💻 0 PC</span>
+        </div>
+        <div class="kpi-desc">Ecossistema de telas</div>
+      </div>
+    </section>
+
+    <!-- Gráfico de Picos (Últimas Horas) e Top Canais -->
+    <div class="two-cols">
+      <section class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" color="var(--accent)"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+            <span>Picos de Audiência e Conexões (Últimas 24 Horas)</span>
+          </div>
+          <span style="font-size:12px;color:var(--text-muted)">Conexões simultâneas / hora</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="peaksChart"></canvas>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" color="var(--orange)"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            <span>Mais Assistidos</span>
+          </div>
+        </div>
+        <div id="topChannelsList" style="display:flex;flex-direction:column;gap:4px">
+          <div class="empty-state">Sem dados de audiência no momento.</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tabela de Aparelhos Conectados em Tempo Real -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="pulse-dot"></span>
+          <span>Aparelhos Conectados em Tempo Real</span>
+        </div>
+        <span style="font-size:12px;color:var(--text-muted)" id="tableFooterStatus">Atualizado agora</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="devices-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Dispositivo & Sistema</th>
+              <th>Canal Assistido</th>
+              <th>Localização & IP</th>
+              <th>Último Sinal</th>
+            </tr>
+          </thead>
+          <tbody id="devicesTableBody">
+            <tr>
+              <td colspan="5">
+                <div class="empty-state">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+                  <div>Nenhum aparelho conectado neste momento.</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Seção de Monetização HilltopAds -->
+    <section class="section-card" style="margin-top: 24px;">
+      <div class="section-header">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" color="var(--accent)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+          Monetização de Vídeo (HilltopAds)
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#94a3b8;cursor:pointer;">
+            <input type="checkbox" id="cfgAdEnabled" checked style="accent-color:var(--accent);">
+            <span>Anúncios Ativos</span>
+          </label>
+          <span class="badge" id="adBadgeStatus" style="background:rgba(8,167,101,0.2);color:#08a765;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">Ativo</span>
+        </div>
+      </div>
+      <div style="padding: 20px;">
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0;">
+          Configure a integração com a <b>HilltopAds</b>. Os anúncios Pre-roll rodam no primeiro canal e se repetem na frequência definida (padrão: a cada 3 canais trocados).
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div>
+            <label style="display:block; font-size: 12px; font-weight:600; color: #cbd5e1; margin-bottom: 6px;">HilltopAds Tag VAST URL</label>
+            <input type="text" id="cfgVastUrl" class="admin-input" placeholder="Ex: https://...hilltopads.../vast.xml">
+            <small style="color: #64748b; font-size: 11px; display:block; margin-top:4px;">Cole aqui a URL da Tag VAST de vídeo gerada no painel da HilltopAds.</small>
+          </div>
+          <div>
+            <label style="display:block; font-size: 12px; font-weight:600; color: #cbd5e1; margin-bottom: 6px;">HilltopAds Direct Link / Popunder (Opcional)</label>
+            <input type="text" id="cfgDirectUrl" class="admin-input" placeholder="Ex: https://...hilltopads.../direct">
+            <small style="color: #64748b; font-size: 11px; display:block; margin-top:4px;">Link direto da campanha ou smartlink para cliques e saiba mais.</small>
+          </div>
+          <div>
+            <label style="display:block; font-size: 12px; font-weight:600; color: #cbd5e1; margin-bottom: 6px;">Frequência de Exibição</label>
+            <select id="cfgFrequency" class="admin-input" style="background:#0f172a; color:#fff;">
+              <option value="1">Em todo canal aberto (1 em 1)</option>
+              <option value="2">A cada 2 canais trocados</option>
+              <option value="3" selected>A cada 3 canais trocados (Recomendado)</option>
+              <option value="4">A cada 4 canais trocados</option>
+              <option value="5">A cada 5 canais trocados</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block; font-size: 12px; font-weight:600; color: #cbd5e1; margin-bottom: 6px;">Tempo para Pular (Skip Ad)</label>
+            <input type="number" id="cfgSkipSeconds" class="admin-input" value="5" min="0" max="30">
+            <small style="color: #64748b; font-size: 11px; display:block; margin-top:4px;">Segundos até liberar o botão 'Pular Anúncio'.</small>
+          </div>
+        </div>
+        <div style="margin-top: 18px; display: flex; justify-content: flex-end; align-items:center; gap: 12px;">
+          <span id="adSaveFeedback" style="font-size:12px;color:#34d399;" hidden>✓ Configurações salvas com sucesso!</span>
+          <button id="btnSaveAds" class="admin-btn" style="width:auto; padding:10px 22px;">Salvar Configurações de Anúncios</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script>
+    const AUTH_KEY = 'playtv_admin_token';
+    let chartInstance = null;
+    let refreshTimer = null;
+
+    const $ = id => document.getElementById(id);
+
+    function checkAuth() {
+      const token = sessionStorage.getItem(AUTH_KEY);
+      if (token && token.includes('.')) {
+        $('adminAuthOverlay').style.display = 'none';
+        initDashboard();
+      } else {
+        $('adminAuthOverlay').style.display = 'flex';
+      }
+    }
+
+    $('adminLoginForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const u = $('adminUser').value.trim();
+      const p = $('adminPass').value.trim();
+      const err = $('authErrorMsg');
+      err.hidden = true;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: u, pass: p })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok && data.token) {
+          sessionStorage.setItem(AUTH_KEY, data.token);
+          $('adminAuthOverlay').style.display = 'none';
+          initDashboard();
+        } else {
+          err.textContent = data.error || 'Credenciais inválidas.';
+          err.hidden = false;
+          $('adminPass').value = '';
+          $('adminPass').focus();
+        }
+      } catch (_) {
+        err.textContent = 'Erro ao conectar com o servidor.';
+        err.hidden = false;
+      }
+    };
+
+    $('btnLogout').onclick = () => {
+      sessionStorage.removeItem(AUTH_KEY);
+      location.reload();
+    };
+
+    function initChart() {
+      const ctx = $('peaksChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Conexões Simultâneas',
+            data: [],
+            borderColor: '#08a765',
+            backgroundColor: 'rgba(8, 167, 101, 0.12)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: '#08a765',
+            pointRadius: 3,
+            pointHoverRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#121a24',
+              titleColor: '#fff',
+              bodyColor: '#34d399',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              padding: 10,
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { color: '#64748b', font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { color: '#64748b', precision: 0, font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/admin/stats', {
+          headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem(AUTH_KEY) }
+        });
+        if (!res.ok) {
+          if (res.status === 401) {
+            sessionStorage.removeItem(AUTH_KEY);
+            location.reload();
+          }
+          return;
+        }
+        const data = await res.json();
+        renderDashboard(data);
+      } catch (err) {
+        console.error('Falha ao atualizar analytics:', err);
+      }
+    }
+
+    function renderDashboard(data) {
+      // 1. KPIs
+      $('valOnline').textContent = data.onlineCount || 0;
+      $('valPeak').textContent = data.peak || 0;
+      $('valPeakTime').textContent = data.peakTime ? `Registrado às ${data.peakTime}` : 'Maior pico diário';
+
+      if (data.topChannel) {
+        $('valTopChannel').textContent = data.topChannel.name || '—';
+        $('valTopChannelCount').textContent = `${data.topChannel.count} dispositivo(s) sintonizado(s)`;
+      } else {
+        $('valTopChannel').textContent = 'Nenhum';
+        $('valTopChannelCount').textContent = 'Nenhum canal ativo agora';
+      }
+
+      // Tipos de dispositivos
+      const dt = data.deviceCounts || { tv: 0, mobile: 0, desktop: 0 };
+      $('valDeviceTypes').innerHTML = `
+        <span>📺 ${dt.tv || 0} TV</span>
+        <span>📱 ${dt.mobile || 0} Cel</span>
+        <span>💻 ${dt.desktop || 0} PC</span>
+      `;
+
+      // 2. Gráfico
+      if (chartInstance && data.chart) {
+        chartInstance.data.labels = data.chart.labels || [];
+        chartInstance.data.datasets[0].data = data.chart.values || [];
+        chartInstance.update();
+      }
+
+      // 3. Top Canais Lista
+      const topList = $('topChannelsList');
+      if (data.ranking && data.ranking.length) {
+        const max = data.ranking[0].count || 1;
+        topList.innerHTML = data.ranking.map((item, idx) => `
+          <div class="top-channel-item">
+            <span class="top-channel-name">${idx + 1}. ${escapeHtml(item.name)}</span>
+            <div class="top-channel-bar-wrap">
+              <div class="top-channel-bar" style="width: ${Math.round((item.count / max) * 100)}%"></div>
+            </div>
+            <span style="font-size:12px;color:#94a3b8;font-weight:600">${item.count} ${item.count === 1 ? 'tela' : 'telas'}</span>
+          </div>
+        `).join('');
+      } else {
+        topList.innerHTML = `<div class="empty-state">Sem transmissões ativas no momento.</div>`;
+      }
+
+      // 4. Tabela de Dispositivos
+      const tbody = $('devicesTableBody');
+      const now = Date.now();
+      if (data.devices && data.devices.length) {
+        tbody.innerHTML = data.devices.map(dev => {
+          const secAgo = Math.max(0, Math.round((now - dev.lastSeen) / 1000));
+          const isOnline = secAgo <= 40;
+          let icon = '💻';
+          if (dev.type === 'Smart TV') icon = '📺';
+          else if (dev.type === 'Celular') icon = '📱';
+          else if (dev.type === 'Tablet') icon = '📟';
+
+          return `
+            <tr>
+              <td>
+                <span class="status-badge" style="${isOnline ? '' : 'background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3)'}">
+                  <span class="pulse-dot" style="${isOnline ? '' : 'background:#f87171;box-shadow:none;animation:none'}"></span>
+                  ${isOnline ? 'Online' : 'Inativo'}
+                </span>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center">
+                  <span class="device-icon">${icon}</span>
+                  <div>
+                    <div style="font-weight:600;color:#fff">${escapeHtml(dev.type || 'Desconhecido')}</div>
+                    <div style="font-size:11px;color:#64748b">${escapeHtml(dev.os || 'Web App')} · ${escapeHtml(dev.browser || 'Navegador')}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="channel-badge" title="${escapeHtml(dev.channel)}">
+                  <span style="color:#ef4444;font-size:10px">●</span> ${escapeHtml(dev.channel || 'Navegando')}
+                </span>
+              </td>
+              <td>
+                <div style="font-weight:500">${escapeHtml(dev.city ? dev.city + ', ' : '')}${escapeHtml(dev.country || 'BR')}</div>
+                <div style="font-size:11px;color:#64748b">${escapeHtml(dev.ip || '127.0.0.1')}</div>
+              </td>
+              <td>
+                <div style="font-size:12px;color:#94a3b8">há ${secAgo}s</div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+                <div>Nenhum aparelho conectado neste momento.</div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+
+      $('tableFooterStatus').textContent = `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    async function loadAdConfig() {
+      try {
+        const res = await fetch('/api/ads/config');
+        if (res.ok) {
+          const cfg = await res.json();
+          if (cfg) {
+            $('cfgAdEnabled').checked = cfg.enabled !== false;
+            $('cfgFrequency').value = cfg.frequency || 3;
+            $('cfgSkipSeconds').value = cfg.skipSeconds || 5;
+            $('cfgVastUrl').value = cfg.vastUrl || '';
+            $('cfgDirectUrl').value = cfg.directUrl || '';
+            updateAdBadge();
+          }
+        }
+      } catch (_) {}
+    }
+
+    function updateAdBadge() {
+      const en = $('cfgAdEnabled').checked;
+      const b = $('adBadgeStatus');
+      if (b) {
+        b.textContent = en ? 'Ativo' : 'Desativado';
+        b.style.background = en ? 'rgba(8, 167, 101, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+        b.style.color = en ? '#08a765' : '#f87171';
+      }
+    }
+
+    $('cfgAdEnabled').onchange = updateAdBadge;
+
+    $('btnSaveAds').onclick = async () => {
+      const btn = $('btnSaveAds');
+      const feedback = $('adSaveFeedback');
+      btn.disabled = true;
+      btn.textContent = 'Salvando…';
+      feedback.hidden = true;
+
+      const body = {
+        enabled: $('cfgAdEnabled').checked,
+        frequency: parseInt($('cfgFrequency').value, 10) || 3,
+        skipSeconds: parseInt($('cfgSkipSeconds').value, 10) || 5,
+        vastUrl: $('cfgVastUrl').value.trim(),
+        directUrl: $('cfgDirectUrl').value.trim(),
+      };
+
+      try {
+        const res = await fetch('/api/admin/ads', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + (sessionStorage.getItem(AUTH_KEY) || ''),
+          },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          feedback.hidden = false;
+          setTimeout(() => feedback.hidden = true, 4000);
+        } else {
+          alert('Erro ao salvar configurações.');
+        }
+      } catch (e) {
+        alert('Falha na comunicação: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Configurações de Anúncios';
+      }
+    };
+
+    function initDashboard() {
+      initChart();
+      fetchStats();
+      setupAutoRefresh();
+      loadAdConfig();
+    }
+
+    function setupAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      if ($('chkAutoRefresh').checked) {
+        refreshTimer = setInterval(fetchStats, 5000);
+      }
+    }
+
+    $('chkAutoRefresh').onchange = setupAutoRefresh;
+    $('btnManualRefresh').onclick = fetchStats;
+
+    document.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>
