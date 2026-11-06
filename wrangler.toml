@@ -1,0 +1,3 @@
+name = "play-tv-proxy"
+compatibility_date = "2026-09-14"
+main = "src/index.js"

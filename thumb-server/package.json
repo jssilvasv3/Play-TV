@@ -1,0 +1,13 @@
+{
+  "name": "playtv-thumb-server",
+  "version": "1.0.0",
+  "description": "Captura thumbnails dos canais IPTV com FFmpeg e publica no Cloudflare R2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "once": "node server.js --once"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.632.0"
+  }
+}

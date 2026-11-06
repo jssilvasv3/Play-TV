@@ -1,0 +1,6 @@
+# Ficheiros que não devem ser publicados como assets estáticos no Cloudflare Pages
+server.js
+hls-proxy.js
+thumb-server
+wrangler.toml
+.vscode
