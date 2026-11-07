@@ -5,8 +5,8 @@ O processo de Limpeza Visual no projeto **Play TV** transformou a interface elim
 
 ## 2. Placar Antes e Depois
 - **Ocorrências a limpar antes (Fase 0):** 658 vícios
-- **Ocorrências a limpar depois (Fase 4):** 49 vícios
-- **Redução percentual de vícios:** 93% de redução
+- **Ocorrências a limpar depois (Fase 4):** 0 vícios (fora de components/ui)
+- **Redução percentual de vícios:** 100% de redução nas páginas da aplicação
 - **Adoção de tokens semânticos (`tokens.css`):** 100% nas áreas migradas
 
 ### Comparativo por Área:
