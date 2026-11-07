@@ -407,13 +407,15 @@ body {
   display: flex;
 }
 .modal {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-panel);
+  color: var(--content);
   max-width: 460px;
   width: 100%;
   padding: 28px;
   position: relative;
-  box-shadow: 0 20px 80px #0003;
+  box-shadow: none;
   max-height: 88vh;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -433,7 +435,7 @@ body {
 .modal p {
   font-size: 13px;
   line-height: 1.6;
-  color: #52616b;
+  color: var(--content-secondary);
 }
 .modal .card-btn {
   width: 100%;
@@ -2462,10 +2464,11 @@ body.is-tv.hide-cursor * {
   display: flex !important;
   flex-direction: column !important;
   padding: 24px 28px !important;
-  border-radius: 12px;
-  background: #131a22 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8) !important;
+  border-radius: var(--radius-panel);
+  background: var(--surface) !important;
+  border: 1px solid var(--divider);
+  box-shadow: none !important;
+  color: var(--content);
 }
 .terms-modal-wrapper {
   display: flex;
@@ -2488,12 +2491,12 @@ body.is-tv.hide-cursor * {
   gap: 14px;
 }
 .terms-icon-shield {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: rgba(8, 167, 101, 0.15);
-  border: 1px solid rgba(8, 167, 101, 0.35);
-  color: #34d399;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-field);
+  background: var(--elevated);
+  border: 1px solid var(--divider);
+  color: var(--content);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2528,19 +2531,19 @@ body.is-tv.hide-cursor * {
   letter-spacing: 0.2px;
 }
 .terms-badge.green {
-  background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--primary-tonal);
+  color: var(--primary-text);
+  border: 1px solid var(--primary);
 }
 .terms-badge.blue {
-  background: rgba(59, 130, 246, 0.12);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: var(--elevated);
+  color: var(--content);
+  border: 1px solid var(--divider);
 }
 .terms-badge.purple {
-  background: rgba(168, 85, 247, 0.12);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: var(--elevated);
+  color: var(--content-secondary);
+  border: 1px solid var(--divider);
 }
 .terms-body {
   flex: 1;
