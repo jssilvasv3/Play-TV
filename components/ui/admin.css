@@ -1,0 +1,462 @@
+/* components/ui/admin.css - Painel Administrativo Play TV */
+
+:root {
+  --bg: var(--canvas);
+  --card-bg: var(--surface);
+  --card-border: var(--divider);
+  --accent: var(--primary);
+  --accent-glow: transparent;
+  --text: var(--content);
+  --text-muted: var(--content-secondary);
+  --text-dim: var(--content-secondary);
+  --blue: var(--primary);
+  --orange: var(--warning);
+  --red: var(--error);
+  --font: var(--font-base);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Modal de Login Admin */
+.admin-auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.95);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.admin-auth-card {
+  max-width: 380px;
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-panel);
+  padding: 30px 24px;
+  text-align: center;
+}
+.admin-auth-card h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.admin-auth-card p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.admin-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--elevated);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-field);
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 12px;
+  outline: none;
+}
+.admin-input:focus {
+  border-color: var(--accent);
+}
+.admin-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: var(--on-primary);
+  border: 0;
+  border-radius: var(--radius-field);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+.admin-btn:hover { filter: brightness(1.1); }
+.admin-btn:active { transform: scale(0.98); }
+.auth-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* Header */
+.top-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--elevated);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  border-radius: var(--radius-field);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+}
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
+  cursor: pointer;
+}
+.toggle-wrap input { accent-color: var(--accent); cursor: pointer; }
+.btn-action {
+  background: var(--elevated);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  padding: 7px 12px;
+  border-radius: var(--radius-field);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.12s;
+}
+.btn-action:hover { background: var(--surface); filter: brightness(1.1); color: var(--text); }
+
+/* Layout do Conteúdo */
+.dashboard-container {
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* KPI Cards Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-panel);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.kpi-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.kpi-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Seções e Cards */
+.section-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-panel);
+  padding: 22px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Gráfico de Picos (Canvas) */
+.chart-wrap {
+  width: 100%;
+  height: 220px;
+  position: relative;
+}
+canvas#peaksChart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Tabela de Dispositivos */
+.table-responsive {
+  overflow-x: auto;
+}
+table.devices-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+table.devices-table th {
+  padding: 12px 14px;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--divider);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+table.devices-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--divider);
+  color: var(--text);
+  vertical-align: middle;
+}
+table.devices-table tr:last-child td { border-bottom: 0; }
+table.devices-table tr:hover td { background: var(--elevated); }
+.device-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-field);
+  background: var(--elevated);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--elevated);
+  color: var(--success);
+  border: 1px solid var(--divider);
+}
+.channel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--elevated);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-field);
+  font-size: 12px;
+  color: var(--text);
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.empty-state svg {
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+/* Two-col layout */
+.two-cols {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .two-cols { grid-template-columns: 1fr; }
+  .dashboard-container { padding: 14px; }
+  .header-actions { gap: 8px; }
+}
+
+/* Top canais lista */
+.top-channel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.top-channel-item:last-child { border-bottom: 0; }
+.top-channel-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.top-channel-bar-wrap {
+  flex: 1;
+  margin: 0 16px;
+  height: 6px;
+  background: var(--elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.top-channel-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+/* Utilitários semânticos para o Admin */
+.admin-auth-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-field);
+  background: var(--elevated);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.btn-logout {
+  color: var(--error);
+  border-color: var(--divider);
+}
+.kpi-active-tag {
+  font-size: 14px;
+  color: var(--success);
+  font-weight: 600;
+}
+.kpi-sub-tag {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.sub-text {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.config-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.config-help {
+  color: var(--text-muted);
+  font-size: 11px;
+  display: block;
+  margin-top: 4px;
+}
+.config-feedback {
+  font-size: 12px;
+  color: var(--success);
+}
+.status-badge.offline {
+  color: var(--error);
+}
+.pulse-dot.offline {
+  background: var(--error);
+}
+.channel-dot {
+  color: var(--primary);
+  font-size: 10px;
+}
+.muted-info {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.muted-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.channel-rank-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.brand-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+.section-card-spaced {
+  margin-top: 24px;
+}
+.kpi-lg-value {
+  font-size: 22px;
+}
+.kpi-device-grid {
+  font-size: 14px;
+  font-weight: 600;
+  gap: 12px;
+  margin-top: 6px;
+}
+.config-inner {
+  padding: 20px;
+}
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.config-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
