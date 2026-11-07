@@ -1,6 +1,10 @@
 /* components/ui/admin.css - Painel Administrativo Play TV */
 
-:root {
+:root, [data-theme="dark"], body {
+  color-scheme: dark;
+}
+
+body, body.dark, [data-theme="dark"] {
   --bg: var(--canvas);
   --card-bg: var(--surface);
   --card-border: var(--divider);
@@ -16,8 +20,8 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--canvas);
+  color: var(--content);
   font-family: var(--font);
   min-height: 100vh;
   display: flex;
