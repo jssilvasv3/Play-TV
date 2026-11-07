@@ -1799,20 +1799,18 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 25%, #182635 0%, #0a1017 100%);
+  background: var(--canvas);
   padding: 20px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   user-select: none;
 }
 .lock-card {
   max-width: 410px;
   width: 100%;
-  background: rgba(19, 29, 41, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-panel);
   padding: 34px 28px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(8, 167, 101, 0.12);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1828,12 +1826,12 @@ body.modal-open {
   align-items: center;
   gap: 7px;
   padding: 5px 12px;
-  background: rgba(245, 158, 11, 0.14);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
+  background: var(--primary-tonal);
+  border: 1px solid var(--primary);
+  color: var(--primary-text);
   font-size: 11px;
   font-weight: 600;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   margin-bottom: 20px;
   letter-spacing: 0.3px;
   text-transform: uppercase;
@@ -1842,28 +1840,28 @@ body.modal-open {
   margin-bottom: 24px;
 }
 .lock-icon {
-  width: 58px;
-  height: 58px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(8, 167, 101, 0.25), rgba(8, 167, 101, 0.05));
-  border: 1px solid rgba(8, 167, 101, 0.35);
-  color: var(--accent, #08a765);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-field);
+  background: var(--elevated);
+  border: 1px solid var(--divider);
+  color: var(--content);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 14px auto;
-  box-shadow: 0 8px 20px rgba(8, 167, 101, 0.2);
+  box-shadow: none;
 }
 .lock-header h2 {
   font-size: 24px;
   font-weight: 700;
-  color: #f1f6fa;
+  color: var(--content);
   margin: 0;
   letter-spacing: -0.3px;
 }
 .lock-header p {
   font-size: 13px;
-  color: #92a4b5;
+  color: var(--content-secondary);
   margin: 0;
   line-height: 1.5;
 }
@@ -1901,10 +1899,10 @@ body.modal-open {
 .lock-input {
   width: 100%;
   padding: 12px 14px 12px 38px;
-  background: #0f1621;
-  border: 1px solid #233244;
-  border-radius: 10px;
-  color: #f1f6fa;
+  background: var(--elevated);
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-field);
+  color: var(--content);
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -1973,15 +1971,15 @@ body.modal-open {
   gap: 8px;
   width: 100%;
   padding: 13px;
-  background: var(--accent, #08a765);
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--on-primary);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-field);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.12s, filter 0.15s, box-shadow 0.15s;
-  box-shadow: 0 4px 14px rgba(8, 167, 101, 0.3);
+  transition: filter 0.15s;
+  box-shadow: none;
   margin-top: 4px;
 }
 .lock-btn:hover {
