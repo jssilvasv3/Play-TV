@@ -1,0 +1,63 @@
+{
+  "fase": "antes",
+  "navegador": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "capturas": [
+    {
+      "rota": "/",
+      "tema": "claro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/antes/inicio-claro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/",
+      "tema": "claro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/antes/inicio-claro-celular.png",
+      "ok": true
+    },
+    {
+      "rota": "/",
+      "tema": "escuro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/antes/inicio-escuro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/",
+      "tema": "escuro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/antes/inicio-escuro-celular.png",
+      "ok": true
+    },
+    {
+      "rota": "/admin.html",
+      "tema": "claro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/antes/admin-html-claro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/admin.html",
+      "tema": "claro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/antes/admin-html-claro-celular.png",
+      "ok": true
+    },
+    {
+      "rota": "/admin.html",
+      "tema": "escuro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/antes/admin-html-escuro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/admin.html",
+      "tema": "escuro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/antes/admin-html-escuro-celular.png",
+      "ok": true
+    }
+  ],
+  "avisos": []
+}

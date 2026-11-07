@@ -1,0 +1,334 @@
+/* Primitivos de UI - Limpeza Visual Play TV
+   Uso exclusivo de tokens semanticos (var(--...)).
+   Sem hexadecimais soltos e sem sombras decorativas.
+*/
+
+/* --- Button --- */
+/* Uso: Ações da interface. No máximo um botão primário por área. Destrutivo apenas para ações irreversíveis. */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 8px 16px;
+  border-radius: var(--radius-field);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  background: transparent;
+  color: var(--content);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ui-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ui-btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.ui-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.ui-btn-secondary {
+  background: var(--elevated);
+  color: var(--content);
+  border-color: var(--divider);
+}
+
+.ui-btn-secondary:hover {
+  background: var(--surface);
+  border-color: var(--field-line);
+}
+
+.ui-btn-ghost {
+  background: transparent;
+  color: var(--content);
+  border-color: transparent;
+}
+
+.ui-btn-ghost:hover {
+  background: var(--elevated);
+}
+
+.ui-btn-destructive {
+  background: transparent;
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.ui-btn-destructive:hover {
+  background: var(--elevated);
+}
+
+/* --- IconButton --- */
+/* Uso: Ação compacta com ícone monocromático (currentColor). */
+.ui-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-field);
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--content);
+  cursor: pointer;
+}
+
+.ui-icon-btn:hover {
+  background: var(--elevated);
+}
+
+/* --- Chip --- */
+/* Uso: Filtros e categorias clicáveis. */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--elevated);
+  border: 1px solid var(--divider);
+  color: var(--content);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ui-chip.is-active {
+  background: var(--primary-tonal);
+  color: var(--primary-text);
+  border-color: var(--primary);
+}
+
+/* --- StatusText --- */
+/* Uso: Feedback textual de estado real (sucesso, aviso, erro). */
+.ui-status-text {
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-status-success {
+  color: var(--success);
+}
+
+.ui-status-warning {
+  color: var(--warning);
+}
+
+.ui-status-error {
+  color: var(--error);
+}
+
+/* --- Tabs --- */
+/* Uso: Alternância de contexto no mesmo nível hierárquico. */
+.ui-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: 4px;
+}
+
+.ui-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--content-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.ui-tab.is-active {
+  color: var(--content);
+  border-bottom-color: var(--primary);
+}
+
+/* --- PageHeader --- */
+/* Uso: Título e descrição de tela sem caixas promocionais. */
+.ui-page-header {
+  margin-bottom: 24px;
+}
+
+.ui-page-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--content);
+  margin: 0 0 6px 0;
+}
+
+.ui-page-header p {
+  font-size: 14px;
+  color: var(--content-secondary);
+  margin: 0;
+}
+
+/* --- Stat --- */
+/* Uso: Exibição densa de métrica ou número relevante. */
+.ui-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ui-stat-label {
+  font-size: 12px;
+  color: var(--content-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ui-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--content);
+}
+
+/* --- Section --- */
+/* Uso: Divisão de blocos de conteúdo com título sutil. */
+.ui-section {
+  margin-bottom: 32px;
+}
+
+.ui-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--content);
+  margin: 0 0 16px 0;
+}
+
+/* --- Input & Textarea & Select --- */
+/* Uso: Campos de entrada de dados com borda definida para acessibilidade. */
+.ui-input,
+.ui-textarea,
+.ui-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-field);
+  color: var(--content);
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.ui-input:focus,
+.ui-textarea:focus,
+.ui-select:focus {
+  outline: 1px solid var(--primary);
+  border-color: var(--primary);
+}
+
+.ui-input::placeholder,
+.ui-textarea::placeholder {
+  color: var(--content-secondary);
+}
+
+/* --- Switch --- */
+/* Uso: Controle binário liga/desliga acessível. */
+.ui-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.ui-switch-track {
+  width: 40px;
+  height: 22px;
+  background: var(--elevated);
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-pill);
+  position: relative;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.ui-switch-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--content);
+  border-radius: var(--radius-pill);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.ui-switch input:checked + .ui-switch-track {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.ui-switch input:checked + .ui-switch-track .ui-switch-thumb {
+  transform: translateX(18px);
+  background: var(--on-primary);
+}
+
+/* --- Table --- */
+/* Uso: Visualização tabular densa com divisores sutis. */
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.ui-table th {
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--divider);
+  color: var(--content-secondary);
+  font-weight: 600;
+}
+
+.ui-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--divider);
+  color: var(--content);
+}
+
+/* --- ProgressBar --- */
+/* Uso: Indicação objetiva de progresso. */
+.ui-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--elevated);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.ui-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+}
+
+/* --- Card --- */
+/* Uso: Agrupador de unidade densa (apenas formulário, modal ou gráfico). Nunca card dentro de card. */
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-panel);
+  padding: 16px;
+}
