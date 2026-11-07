@@ -1,16 +1,13 @@
+@import "tokens.css";
+
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
-  font-family:
-    Inter,
-    Segoe UI,
-    Arial,
-    sans-serif;
-  background: linear-gradient(135deg, #eef2f7 0%, #e2eaf2 45%, #dfe9f5 100%);
-  background-attachment: fixed;
-  color: #26313b;
+  font-family: var(--font-base);
+  background: var(--canvas);
+  color: var(--content);
 }
 .app-shell {
   min-height: 100vh;
