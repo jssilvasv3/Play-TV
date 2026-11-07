@@ -25,7 +25,7 @@ const allowed = [
 const patterns = [
   ['hex solto', /#[0-9a-f]{3,8}\b/gi],
   ['gradiente', /(linear|radial)-gradient|(?:^|\s)(?:from|via|to)-/gi],
-  ['sombra', /box-shadow|(?:^|\s)shadow-/gi],
+  ['sombra decorativa', /box-shadow:\s*(?:rgba?|#[0-9a-f]|-?[0-9.]+px)|(?:^|\s)shadow-(?:sm|md|lg|xl|2xl)/gi],
   ['raio grande', /(?:^|\s)rounded-(?:xl|2xl|3xl)/gi],
   ['cor direta do framework', /(?:text|bg|border|ring|fill|stroke)-(?:red|amber|yellow|orange|emerald|green|blue|sky|purple|indigo|violet|rose|teal|slate|gray|zinc|neutral|stone|cyan|pink|lime|fuchsia)-[0-9]+/gi],
 ];

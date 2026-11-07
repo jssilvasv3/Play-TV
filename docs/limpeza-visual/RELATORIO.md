@@ -52,6 +52,7 @@ Todos os pares de contraste testados foram aprovados:
 ## 6. O que Não Foi Verificado
 - Ambientes com navegadores legados (Internet Explorer 11).
 - Dispositivos Smart TV físicos (verificação executada em emulação desktop 10-foot UI e resoluções padrão).
+- Cores embutidas em imagens e logos externos não podem ser alteradas pelo CSS.
 
 ## 7. Como Desfazer ou Limpar Documentos Temporários
 - Caso o usuário deseje excluir os relatórios e imagens de captura da branch:

@@ -33,6 +33,7 @@ Dúvidas mantidas:
 - Nenhuma dúvida bloqueante.
 
 Pendências:
-- Nenhuma pendência visual em aberto. O verificador local deve ser ampliado quando houver novas telas ou estados.
+- Conservados os seletores de cor do usuário e os códigos de cor usados para renderizar conteúdo externo. Não substituir sem uma regra semântica aprovada.
+- O relatório anterior continha divergências numéricas: o placar atual deve ser recalculado pela ferramenta antes de nova entrega.
 
 Última atualização: 2026-11-07 19:19

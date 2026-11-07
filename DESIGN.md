@@ -9,7 +9,7 @@
 O design do **Play TV** adota a atmosfera cinemática, sóbria e imersiva inspirada na interface do **Amazon Prime Video**, preservando integralmente o layout atual, a rapidez de navegação e a disposição dos componentes do player.
 
 O objetivo é transformar a experiência de assistir televisão na web em algo premium, onde a interface atua como uma moldura discreta para o conteúdo audiovisual:
-- **Imersão Noturna (Deep Dark Canvas):** O fundo não é preto chapado (#000), mas sim uma gradação refinada de tons de azul petróleo profundo e carvão mineral (`#0f171e`, `#161f2a`, `#1b2533`).
+- **Imersão Noturna (Canvas Escuro):** O fundo usa superfícies neutras sem gradientes decorativos (`--canvas`, `--surface` e `--elevated`).
 - **Foco no Conteúdo:** Logos de canais e thumbnails de transmissões ganham destaque vibrante através de contraste óptico com as superfícies escuras.
 - **Micro-interações Sutis:** Efeitos de elevação suave ao passar o mouse ou mover o foco do controle remoto (D-Pad).
 - **Consistência "10-foot UI":** Elementos de foco, tipografia e espaçamentos calibrados para serem visualizados com conforto a 3 metros de distância na Smart TV ou na palma da mão no smartphone.
@@ -80,9 +80,9 @@ A interface utiliza tipografia do sistema nativa (Apple SF Pro, Segoe UI, Roboto
   - Modais: `12px`
   - Badges (Pills): `999px`
 - **Sombras e Elevação (Elevation):**
-  - Card Padrão: `box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35)`
-  - Card Focado / Hover: `box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6)` com leve escala (`scale(1.03)`)
-  - Modais: `box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8)`
+  - As superfícies não usam sombra decorativa.
+  - A hierarquia vem de fundo, divisor de 1px, tamanho e peso.
+  - O foco usa contorno visível sem brilho ou sombra.
 
 ---
 
@@ -156,4 +156,4 @@ Inspirado na experiência de reprodução do Prime Video:
 | **Mobile Portrait (Celular)** | `< 600px` | Coluna única, hero redimensionado, botões com mínimo de 44px de toque, texto do país ocultado. |
 | **Tablet / Foldables** | `600px - 1024px` | Grade de 2 a 3 colunas, painéis lado a lado adaptativos, toque otimizado. |
 | **Desktop / Laptop** | `1024px - 1920px` | Painéis duplos superiores (Hero 60% / Favoritos 40%), catálogo em trilhos de 5 a 6 colunas. |
-| **Smart TV / 10-foot UI** | `1080p / 4K` | Anel de foco com brilho verde de 3px (`#08a765`), escala de 1.04 no foco, player em tela cheia nativa. |
+| **Smart TV / 10-foot UI** | `1080p / 4K` | Contorno de foco de 3px com cor semântica (`var(--primary)`), escala de 1.04 no foco, player em tela cheia nativa. |
