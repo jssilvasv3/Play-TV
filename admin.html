@@ -268,11 +268,11 @@
     function initChart() {
       const ctx = $('peaksChart').getContext('2d');
       const cs = getComputedStyle(document.body);
-      const cPrimary = cs.getPropertyValue('--primary').trim() || 'rgb(62, 166, 255)';
-      const cSurface = cs.getPropertyValue('--surface').trim() || 'rgb(33, 33, 33)';
-      const cContent = cs.getPropertyValue('--content').trim() || 'rgb(241, 241, 241)';
-      const cDivider = cs.getPropertyValue('--divider').trim() || 'rgb(63, 63, 63)';
-      const cMuted = cs.getPropertyValue('--content-secondary').trim() || 'rgb(170, 170, 170)';
+      const cPrimary = cs.getPropertyValue('--accent').trim() || 'rgb(8, 167, 101)';
+      const cSurface = cs.getPropertyValue('--card-bg').trim() || 'rgb(22, 31, 42)';
+      const cContent = cs.getPropertyValue('--text').trim() || 'rgb(241, 245, 249)';
+      const cDivider = cs.getPropertyValue('--card-border').trim() || 'rgba(255, 255, 255, 0.08)';
+      const cMuted = cs.getPropertyValue('--text-muted').trim() || 'rgb(141, 162, 181)';
 
       chartInstance = new Chart(ctx, {
         type: 'line',
@@ -282,8 +282,8 @@
             label: 'Conexões Simultâneas',
             data: [],
             borderColor: cPrimary,
-            backgroundColor: 'rgba(62, 166, 255, 0.1)',
-            borderWidth: 2,
+            backgroundColor: 'rgba(8, 167, 101, 0.12)',
+            borderWidth: 2.5,
             fill: true,
             tension: 0.35,
             pointBackgroundColor: cPrimary,
@@ -299,7 +299,7 @@
             tooltip: {
               backgroundColor: cSurface,
               titleColor: cContent,
-              bodyColor: cContent,
+              bodyColor: cMuted,
               borderColor: cDivider,
               borderWidth: 1,
               padding: 10,
@@ -307,12 +307,12 @@
           },
           scales: {
             x: {
-              grid: { color: 'rgba(255,255,255,0.06)' },
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
               ticks: { color: cMuted, font: { size: 11 } }
             },
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(255,255,255,0.06)' },
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
               ticks: { color: cMuted, precision: 0, font: { size: 11 } }
             }
           }
