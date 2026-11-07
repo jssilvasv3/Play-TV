@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "check:ui": "node scripts/limpeza-visual/detectar-vicios.cjs index.html admin.html",
+    "verify:ui": "node scripts/limpeza-visual/verificar.cjs",
     "test": "npm run check:ui"
   },
   "keywords": [

@@ -1,5 +1,5 @@
 # Estado da limpeza visual
-Fase atual: 2 (migração por área concluída)
+Fase atual: 4 (travamento e verificação concluídos)
 Branch de integração: limpeza-visual | Commit de partida: b5298c221b5d43cd6b6b9985cb73472eb1feda6e | Tela de referência: Amazon Prime Video (sem alterar layout Play TV)
 Placar inicial: 658 ocorrências | Placar atual: 49 ocorrências
 
@@ -33,6 +33,6 @@ Dúvidas mantidas:
 - Nenhuma dúvida bloqueante.
 
 Pendências:
-- Nenhuma pendência em aberto.
+- Nenhuma pendência visual em aberto. O verificador local deve ser ampliado quando houver novas telas ou estados.
 
-Última atualização: 2026-11-07 00:50
+Última atualização: 2026-11-07 19:19

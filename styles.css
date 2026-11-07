@@ -482,26 +482,11 @@ body {
 
 /* ================= Tema escuro (sobreposições) ================= */
 body {
-  background: linear-gradient(135deg, #101820 0%, #0d1520 45%, #0b1220 100%);
+  background: var(--canvas);
   color: #dfe7ee;
 }
 body::before {
-  background:
-    radial-gradient(
-      600px 380px at 12% -5%,
-      rgba(139, 63, 252, 0.16),
-      transparent 70%
-    ),
-    radial-gradient(
-      700px 420px at 92% 8%,
-      rgba(8, 167, 101, 0.13),
-      transparent 70%
-    ),
-    radial-gradient(
-      650px 500px at 50% 110%,
-      rgba(124, 199, 255, 0.08),
-      transparent 70%
-    );
+  background: transparent;
 }
 .topbar {
   background: #161f2a;
@@ -594,7 +579,7 @@ body::before {
 .modal {
   background: #161f2a;
   color: #dfe7ee;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--card-shadow);
 }
 .modal h2,
 .modal h3 {
@@ -988,11 +973,7 @@ body.modal-open {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 16, 24, 0.25) 0%,
-    rgba(10, 16, 24, 0.88) 100%
-  );
+  background: rgba(10, 16, 24, 0.88);
 }
 .app-card .card-head,
 .app-card .app-desc,
@@ -1044,12 +1025,7 @@ body.modal-open {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(13, 29, 39, 0.94) 0%,
-    rgba(13, 29, 39, 0.6) 55%,
-    rgba(13, 29, 39, 0.25) 100%
-  );
+  background: rgba(13, 29, 39, 0.78);
 }
 .hero-card.live .hero-art {
   z-index: 3;
@@ -1255,12 +1231,7 @@ body.modal-open {
   left: 0 !important;
   width: 100% !important;
 
-  background: linear-gradient(
-    to top,
-    rgba(11, 18, 32, 0.95) 0%,
-    rgba(11, 18, 32, 0.3) 50%,
-    rgba(11, 18, 32, 0.1) 100%
-  ) !important;
+  background: rgba(11, 18, 32, 0.75) !important;
   z-index: 1 !important;
 }
 .allch-grid .card-preview {
@@ -1602,7 +1573,7 @@ body.modal-open {
   border-radius: 2px;
   vertical-align: -2px;
   display: inline-block;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: none;
 }
 .flag-fallback {
   font-size: 16px;
@@ -1911,7 +1882,9 @@ body.modal-open {
 }
 .lock-input:focus {
   border-color: var(--accent, #08a765);
-  box-shadow: 0 0 0 3px rgba(8, 167, 101, 0.18);
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: none;
   background: #121b27;
 }
 .lock-toggle-pass {
@@ -1986,7 +1959,7 @@ body.modal-open {
 }
 .lock-btn:hover {
   filter: brightness(1.1);
-  box-shadow: 0 6px 18px rgba(8, 167, 101, 0.4);
+  box-shadow: none;
 }
 .lock-btn:active {
   transform: scale(0.98);
@@ -2007,9 +1980,11 @@ body.modal-open {
 .highlight:focus-visible,
 .modal-close:focus-visible {
   outline: none !important;
-  box-shadow: 0 0 0 3px #08a765, 0 0 20px rgba(8, 167, 101, 0.75) !important;
+  outline: 3px solid var(--primary) !important;
+  outline-offset: 2px;
+  box-shadow: none !important;
   transform: scale(1.04) !important;
-  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  transition: transform 0.15s ease !important;
   z-index: 20 !important;
 }
 
@@ -2018,7 +1993,7 @@ body.modal-open {
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: transform 0.18s ease, border-color 0.18s ease;
 }
 .app-card:active {
   transform: scale(0.98);
@@ -2324,7 +2299,9 @@ body.is-tv .player-btn {
 body.is-tv .app-card:focus-visible,
 body.is-tv .app-card.tv-focused {
   border-color: #08a765 !important;
-  box-shadow: 0 0 0 4px #08a765, 0 10px 35px rgba(8, 167, 101, 0.85) !important;
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  box-shadow: none !important;
   transform: scale(1.06) !important;
 }
 
@@ -2380,7 +2357,7 @@ body.is-tv.hide-cursor * {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  background: rgba(0, 0, 0, 0.85);
   pointer-events: none;
 }
 .ad-badge {
@@ -2406,7 +2383,7 @@ body.is-tv.hide-cursor * {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  background: rgba(0, 0, 0, 0.85);
   pointer-events: auto;
 }
 .ad-learn-more {
@@ -2444,15 +2421,16 @@ body.is-tv.hide-cursor * {
   border-color: var(--accent, #08a765);
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(8, 167, 101, 0.45);
+  box-shadow: none;
 }
 .ad-skip-btn.ready:hover {
   filter: brightness(1.1);
   transform: scale(1.03);
 }
 .ad-skip-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px #08a765, 0 0 15px rgba(8, 167, 101, 0.8) !important;
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  box-shadow: none !important;
 }
 
 /* ========================================================
@@ -2667,5 +2645,3 @@ body.is-tv.hide-cursor * {
     width: 100%;
   }
 }
-
-
