@@ -9,6 +9,15 @@ body {
   background: var(--canvas);
   color: var(--content);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 .app-shell {
   min-height: 100vh;
   border-top: 4px solid #8b3ffc;
