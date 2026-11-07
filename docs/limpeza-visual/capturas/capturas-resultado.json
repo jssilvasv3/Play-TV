@@ -1,0 +1,68 @@
+{
+  "fase": "depois",
+  "navegador": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "capturas": [
+    {
+      "rota": "/",
+      "tema": "claro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/inicio-claro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/",
+      "tema": "claro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/inicio-claro-celular.png",
+      "ok": true
+    },
+    {
+      "rota": "/",
+      "tema": "escuro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/inicio-escuro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/",
+      "tema": "escuro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/inicio-escuro-celular.png",
+      "ok": true
+    },
+    {
+      "rota": "/uikit.html",
+      "tema": "claro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/uikit-html-claro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/uikit.html",
+      "tema": "claro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/uikit-html-claro-celular.png",
+      "ok": true
+    },
+    {
+      "rota": "/uikit.html",
+      "tema": "escuro",
+      "tela": "desktop",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/uikit-html-escuro-desktop.png",
+      "ok": true
+    },
+    {
+      "rota": "/uikit.html",
+      "tema": "escuro",
+      "tela": "celular",
+      "arquivo": "docs/limpeza-visual/capturas/piloto/depois/uikit-html-escuro-celular.png",
+      "ok": true
+    }
+  ],
+  "avisos": [
+    "/ (desktop): o tema escuro saiu idêntico ao claro. Se o app troca de tema por classe, use --classe-escuro; por localStorage, use --storage; senão capture pelo navegador do agente.",
+    "/ (celular): o tema escuro saiu idêntico ao claro. Se o app troca de tema por classe, use --classe-escuro; por localStorage, use --storage; senão capture pelo navegador do agente.",
+    "/uikit.html (desktop): o tema escuro saiu idêntico ao claro. Se o app troca de tema por classe, use --classe-escuro; por localStorage, use --storage; senão capture pelo navegador do agente.",
+    "/uikit.html (celular): o tema escuro saiu idêntico ao claro. Se o app troca de tema por classe, use --classe-escuro; por localStorage, use --storage; senão capture pelo navegador do agente."
+  ]
+}
