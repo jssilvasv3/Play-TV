@@ -176,7 +176,7 @@ function setSleep(minutes) {
       cancelSleep();
       const v = document.getElementById('chVideo');
       if (v) v.pause();
-      alert('⏱ Temporizador de sono: reprodução pausada.');
+      alert('Temporizador de sono: reprodução pausada.');
     }
   }, 1000);
 }
@@ -977,7 +977,7 @@ async function playPreRollAd(ch, onDone) {
     if (remaining <= 0) {
       clearInterval(adCountdownInterval);
       skipBtn.disabled = false;
-      skipBtn.innerHTML = 'Pular anúncio ⏭';
+      skipBtn.innerHTML = 'Pular anúncio';
       skipBtn.classList.add('ready');
       if (document.body.classList.contains('is-tv')) {
         skipBtn.focus();
@@ -1363,7 +1363,7 @@ function openMenuModal() {
         <input id="mProxyBase" placeholder="https://meu-proxy..." value="${esc(settings.proxyBase || '')}" style="flex:1">
         <button class="src-btn primary" id="mProxySave">Guardar</button>
       </div>
-      <small style="color:#7b8891;margin-top:4px">Deteção agora: ${hlsProxyOk ? '✔ proxy a responder' : '✖ sem proxy (ligação direta)'}</small>
+      <small style="color:#7b8891;margin-top:4px">Deteção agora: ${hlsProxyOk ? 'proxy a responder' : 'sem proxy (ligação direta)'}</small>
     </div>
     <h3>${I.play} Reprodução</h3>
     <div class="menu-row"><span class="grow">Mini-janela ao sair <small>(retomar onde parou)</small></span><button class="src-btn" id="mMini">${cur.miniOnExit ? 'Ligado' : 'Desligado'}</button></div>
