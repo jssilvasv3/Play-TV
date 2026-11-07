@@ -1,5 +1,6 @@
 # Play TV — Especificação de Design e Sistema Visual (DESIGN.md)
 *Referência Estética: Amazon Prime Video (sem alterar o layout funcional do Play TV)*
+*Tela de Referência Aprovada no Piloto: `index.html`*
 
 ---
 
