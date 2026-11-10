@@ -216,6 +216,8 @@ function sleepRemainingLabel() {
   return `Faltam ${m}:${String(s).padStart(2, '0')}`;
 }
 let slide = 0;
+const kRecentSlideIntervalMs = 20000;
+let recentSlideTimer = null;
 let hls = null;
 
 /* ================= Proxy HLS ================= */
@@ -768,6 +770,7 @@ function renderSlide() {
   const slides = state.recents.length
     ? state.recents.slice(0, 5).map(c => [c.name, (c.sources[0] || {}).groupTitle || 'Canal recente', c.logo ? null : I.tv, c.logo, c.id])
     : welcomeSlides;
+  syncRecentSlideTimer();
   if (slide >= slides.length) slide = 0;
   const s0 = slides[slide];
   // Usa sempre o canal vivo (fonte atual): o registo antigo pode não ter logo.
@@ -790,6 +793,20 @@ function renderSlide() {
   if ($('prevSlide')) $('prevSlide').style.display = hasMultiple ? '' : 'none';
   if ($('nextSlide')) $('nextSlide').style.display = hasMultiple ? '' : 'none';
   if ($('sliderDots')) $('sliderDots').style.display = hasMultiple ? '' : 'none';
+}
+
+function syncRecentSlideTimer() {
+  if (state.recents.length <= 1) {
+    if (recentSlideTimer) clearInterval(recentSlideTimer);
+    recentSlideTimer = null;
+    return;
+  }
+  if (recentSlideTimer) return;
+  recentSlideTimer = setInterval(() => {
+    if (document.hidden || state.recents.length <= 1) return;
+    slide = (slide + 1) % Math.min(state.recents.length, 5);
+    renderSlide();
+  }, kRecentSlideIntervalMs);
 }
 
 /* Preview contínuo na telinha: o canal visto recentemente toca em silêncio. */
