@@ -159,7 +159,7 @@ export default {
       for (const [id, dev] of globalThis._devices.entries()) {
         if (now - dev.lastSeen <= 65000) {
           activeDevices.push(dev);
-          if (dev.type === 'Smart TV') deviceCounts.tv++;
+          if (dev.type === 'Fire TV / Apple TV' || dev.type === 'Roku' || dev.type === 'NVIDIA Shield' || dev.type === 'Xiaomi / Android TV' || dev.type === 'OnePlus' || dev.type === 'Humax' || dev.type === 'Popcorn / Ouya' || dev.type === 'Android TV / Box') deviceCounts.tv++;
           else if (dev.type === 'Celular' || dev.type === 'Tablet') deviceCounts.mobile++;
           else deviceCounts.desktop++;
 

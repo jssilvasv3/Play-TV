@@ -1,4 +1,4 @@
-﻿/* server.js — Servidor único Play TV (estáticos + proxy HLS na mesma origem).
+/* server.js — Servidor único Play TV (estáticos + proxy HLS na mesma origem).
    Serve ficheiros estáticos (index.html, app.js, styles.css, …) e os endpoints
    /api/ping + /api/proxy?url=... na mesma origem, para evitar depender de
    Cloudflare Functions e de funcionar com streams que bloqueiam datacenter.
@@ -81,7 +81,7 @@ async function handleProxy(req, res, origin) {
   let targetUrl;
   try {
     targetUrl = new URL(targetParam);
-    if (!/^https?$/i.test(targetUrl.protocol)) {
+    if (!/^https?:?$/i.test(targetUrl.protocol)) {
       throw new Error('URL deve ser http ou https');
     }
   } catch (e) {
@@ -134,15 +134,68 @@ async function handleProxy(req, res, origin) {
     }
 
     const buffer = await upstream.arrayBuffer();
-    res.writeHead(200, {
-      'Content-Type': contentType || 'application/octet-stream',
-      'Access-Control-Allow-Origin': ALLOWED_ORIGINS,
-      'Cache-Control': 'no-store',
-    });
-    res.end(buffer);
+    if (!res.headersSent) {
+      res.writeHead(200, {
+        'Content-Type': contentType || 'application/octet-stream',
+        'Access-Control-Allow-Origin': ALLOWED_ORIGINS,
+        'Cache-Control': 'no-store',
+      });
+      res.end(Buffer.from(buffer));
+    }
   } catch (err) {
-    res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Erro do proxy: ' + err.message);
+    if (!res.headersSent) {
+      res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Erro do proxy: ' + err.message);
+    }
+  }
+}
+
+async function handlePlaylist(req, res, origin) {
+  const reqUrl = new URL(req.url, `http://localhost:${PORT}`);
+  const playlistUrl = reqUrl.searchParams.get('url');
+  if (!playlistUrl) {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Missing ?url= parameter');
+    return;
+  }
+  try {
+    const upstream = await fetch(decodeURIComponent(playlistUrl), {
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'VLC/3.0.18 LibVLC/3.0.18',
+        'Accept': '*/*',
+      }
+    });
+    if (!upstream.ok) {
+      res.writeHead(upstream.status, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end(`Upstream HTTP ${upstream.status}`);
+      return;
+    }
+    let text = await upstream.text();
+    const proxyBase = `${origin}/proxy?url=`;
+    text = text
+      .split(/\r?\n/)
+      .map(line => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return line;
+        if (trimmed.startsWith(proxyBase) || trimmed.includes('/proxy?url=')) return trimmed;
+        if (/^https?:\/\//i.test(trimmed)) {
+          return proxyBase + encodeURIComponent(trimmed);
+        }
+        return line;
+      })
+      .join('\n');
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.apple.mpegurl; charset=utf-8',
+      'Access-Control-Allow-Origin': ALLOWED_ORIGINS,
+      'Cache-Control': 'public, max-age=300',
+    });
+    res.end(text);
+  } catch (err) {
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Playlist error: ' + err.message);
+    }
   }
 }
 
@@ -157,16 +210,22 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  // Proxy no mesmo padrão que o Worker/ app.js: /proxy?url=...
-  if (requestUrl.pathname === '/proxy' && requestUrl.searchParams.has('url')) {
-    await handleProxy(request, response, `${requestUrl.origin}`);
+  // Ping para deteção automática pelo app (/ping, /proxy/ping, /api/ping)
+  if (requestUrl.pathname === '/ping' || requestUrl.pathname === '/proxy/ping' || requestUrl.pathname === '/api/ping') {
+    response.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    response.end('ok');
     return;
   }
 
-  // Ping para deteção automática pelo app
-  if (requestUrl.pathname === '/proxy/ping') {
-    response.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-    response.end('ok');
+  // Playlist completa M3U
+  if (requestUrl.pathname === '/playlist' && requestUrl.searchParams.has('url')) {
+    await handlePlaylist(request, response, `${requestUrl.origin}`);
+    return;
+  }
+
+  // Proxy no mesmo padrão que o Worker/ app.js: /proxy?url=...
+  if (requestUrl.pathname === '/proxy' && requestUrl.searchParams.has('url')) {
+    await handleProxy(request, response, `${requestUrl.origin}`);
     return;
   }
 

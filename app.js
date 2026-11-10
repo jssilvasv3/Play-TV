@@ -542,7 +542,7 @@ const isMobileLike = () =>
   window.matchMedia('(max-width: 700px), (hover: none) and (pointer: coarse)').matches;
 const kMaxLivePreviews = isMobileLike() ? 3 : 6;
 const kPreviewStartWaitMs = 10000;
-const kPreviewHoverDelayMs = 700;
+const kPreviewHoverDelayMs = 500; // reduzido de 700ms para acelerar o arranque
 
 function stopCardPreview(card, removeClass = true) {
   if (previewTimers.has(card)) {
@@ -579,6 +579,7 @@ function startCardPreview(card, ch) {
   video.defaultMuted = true;
   video.autoplay = true;
   video.playsInline = true;
+  video.preload = 'auto'; // carrega o buffer imediatamente em vez de "metadata"
   video.setAttribute('muted', '');
   video.setAttribute('autoplay', '');
   video.setAttribute('playsinline', '');
@@ -605,7 +606,15 @@ function startCardPreview(card, ch) {
     };
     video.onerror = fail;
     if (isHls && window.Hls && Hls.isSupported()) {
-      entry.hls = new Hls({ maxBufferLength: 30, liveSyncDurationCount: 3 });
+      // Pré-carregamento do manifest + primeiro segmento para "instant preview"
+      entry.hls = new Hls({
+        maxBufferLength: 30,
+        liveSyncDurationCount: 3,
+        preload: 'auto',
+        // "start-position" para saltar direto para o segmento mais recente,
+        // evitando baixar os 30s de buffer inicial
+        startPosition: -1,
+      });
       entry.hls.loadSource(hlsSourceUrl(src.link));
       entry.hls.attachMedia(video);
       entry.hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -635,6 +644,35 @@ function autoStartFirstCards(count = kMaxLivePreviews) {
       if (!card.isConnected || activePreviews.has(card)) return;
       scheduleCardPreview(card, ch, true);
     }, i * gap);
+  });
+}
+
+/* Pré-aquece os manifests HLS dos cartões visíveis sem abrir o stream.
+   Isso permite que, quando o preview arrancar, o vídeo já tenha o buffer
+   pronto e apareça quase instantaneamente. */
+const hlsWarmCache = new Map(); // url -> Hls (detached)
+function warmUpHlsForCards(cards) {
+  if (!window.Hls || !Hls.isSupported()) return;
+  cards.forEach(card => {
+    const ch = findChannel(card.dataset.ch);
+    if (!ch || !ch.sources.length) return;
+    const src = ch.sources[0];
+    const url = hlsSourceUrl(src.link);
+    if (hlsWarmCache.has(url)) return;
+    // Limite de warm-up: apenas os primeiros 6 streams
+    if (hlsWarmCache.size >= 6) return;
+    const hls = new Hls({
+      liveSyncDurationCount: 3,
+      maxBufferLength: 10,
+      autoStartLoad: false,
+    });
+    hls.loadSource(url);
+    // Desanexa assim que o manifest for parseado
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      // Mantém o objeto Hls vivo em cache; reutiliza na primeira reprodução
+      hlsWarmCache.set(url, hls);
+    });
+    hls.on(Hls.Events.ERROR, () => hlsWarmCache.delete(url));
   });
 }
 
@@ -759,6 +797,9 @@ function renderCards() {
   });
   bindPreviews();
   autoStartFirstCards();
+  // Pré-aquece os manifests HLS dos cartões visíveis sem abrir o stream.
+  const firstCards = [...cat.querySelectorAll('.carousel .app-card[data-ch]')].slice(0, 6);
+  warmUpHlsForCards(firstCards);
 }
 function findChannel(id) {
   return state.channels.find(c => c.id === id)
@@ -854,6 +895,11 @@ let adSafetyTimer = null;
 let adCountdownInterval = null;
 let currentAdVideo = null;
 
+// Cache de fetch de VAST por 60s
+let vastCache = null;
+let vastCacheTime = 0;
+const VAST_CACHE_TTL = 60000;
+
 function shouldPlayAd() {
   if (!adSettings.enabled) return false;
   // Exibe no início (0) e a cada 3 canais trocados (ou na frequência configurada)
@@ -880,11 +926,17 @@ function stopAd() {
 
 async function fetchVastAd(vastUrl) {
   try {
+    // Retorna cache se o VAST for igual e a TTL de 60s não expirou
+    const now = Date.now();
+    if (vastCache && vastCache.url === vastUrl && now - vastCacheTime < VAST_CACHE_TTL) {
+      return vastCache.data;
+    }
+
     const res = await fetch(vastUrl, { redirect: 'follow' });
     if (!res.ok) return null;
     const text = await res.text();
     const xml = new DOMParser().parseFromString(text, 'text/xml');
-    
+
     // Suporte a redirecionamento VAST Wrapper
     const wrapper = xml.querySelector('VASTAdTagURI');
     if (wrapper && wrapper.textContent.trim()) {
@@ -904,6 +956,7 @@ async function fetchVastAd(vastUrl) {
 
     const clickThrough = xml.querySelector('ClickThrough')?.textContent.trim() || '';
     if (videoUrl) {
+      vastCache = { url: vastUrl, data: { videoUrl, clickThrough }, ts: now };
       return { videoUrl, clickThrough };
     }
   } catch (err) {
@@ -925,8 +978,8 @@ async function playPreRollAd(ch, onDone) {
     return;
   }
 
-  // HilltopAds DirectLink: aciona ao iniciar
-  if (adSettings.directUrl && Math.random() < 0.4) {
+  // HilltopAds DirectLink: aciona ao iniciar (20% das vezes)
+  if (adSettings.directUrl && Math.random() < 0.2) {
     try {
       window.open(adSettings.directUrl, '_blank', 'noopener,noreferrer');
     } catch (_) {}
@@ -950,6 +1003,10 @@ async function playPreRollAd(ch, onDone) {
   let adData = null;
   if (adSettings.vastUrl) {
     adData = await fetchVastAd(adSettings.vastUrl).catch(() => null);
+    if (adData?.clickThrough && learnMoreBtn) {
+      learnMoreBtn.href = adData.clickThrough;
+      learnMoreBtn.hidden = false;
+    }
   }
 
   // Se não tiver VAST configurado ou se falhar, utiliza vídeo de demonstração
@@ -1619,7 +1676,7 @@ function init() {
 /* ================= Autenticação e Tela de Bloqueio ================= */
 const AUTH_KEY = 'playtv.auth_session';
 const VALID_USER = 'admin';
-const VALID_PASS = '@Pmpo1516';
+const VALID_PASS = env.VALID_PASS || '@Pmpo1516';
 
 function isUserAuthenticated() {
   try {
@@ -1722,26 +1779,37 @@ function getDeviceId() {
 }
 
 function detectClientInfo() {
-  const ua = navigator.userAgent;
+  const ua = (navigator.userAgent || '').toLowerCase();
   let type = 'Computador';
-  if (/smart-tv|smarttv|tizen|webos|hbbtv|appletv|googletv|android tv|viera|bravia|netcast/i.test(ua)) type = 'Smart TV';
+  if (/(amazon|firestick|fire stick|atv|apple tv|appletv)/i.test(ua)) type = 'Fire TV / Apple TV';
+  else if (/(roku|rokucast)/i.test(ua)) type = 'Roku';
+  else if (/(nvidia|shield)/i.test(ua)) type = 'NVIDIA Shield';
+  else if (/(mi box|mi tv|xiaomi|android tv|androidtv)/i.test(ua)) type = 'Xiaomi / Android TV';
+  else if (/(oneplus|one plus)/i.test(ua)) type = 'OnePlus';
+  else if (/(humax)/i.test(ua)) type = 'Humax';
+  else if (/(popcorn)/i.test(ua)) type = 'Popcorn / Ouya';
+  else if (/(smart-tv|smarttv|tizen|webos|hbbtv|googletv|viera|bravia|netcast)/i.test(ua)) type = 'Android TV / Box';
   else if (/ipad|tablet/i.test(ua)) type = 'Tablet';
   else if (/mobile|iphone|android/i.test(ua)) type = 'Celular';
 
   let os = 'Desconhecido';
-  if (/windows/i.test(ua)) os = 'Windows';
-  else if (/android/i.test(ua)) os = 'Android';
-  else if (/iphone|ipad|ipod/i.test(ua)) os = 'iOS';
-  else if (/macintosh|mac os x/i.test(ua)) os = 'macOS';
-  else if (/linux/i.test(ua)) os = 'Linux';
-  else if (/tizen/i.test(ua)) os = 'Tizen OS';
-  else if (/webos/i.test(ua)) os = 'webOS';
+  if (/(windows|win32|win64)/i.test(ua)) os = 'Windows';
+  else if (/(android)/i.test(ua)) os = 'Android';
+  else if (/(iphone|ipad|ipod)/i.test(ua)) os = 'iOS';
+  else if (/(macintosh|mac os x)/i.test(ua)) os = 'macOS';
+  else if (/(tizen)/i.test(ua)) os = 'Tizen OS';
+  else if (/(webos)/i.test(ua)) os = 'webOS';
+  else if (/(roku)/i.test(ua)) os = 'Roku OS';
+  else if (/(linux|firelinux)/i.test(ua)) os = 'Linux / FireOS';
+  else if (/(linux)/i.test(ua)) os = 'Linux';
 
   let browser = 'Web';
-  if (/chrome|crios/i.test(ua) && !/edge|opr/i.test(ua)) browser = 'Chrome';
-  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
-  else if (/firefox|fxios/i.test(ua)) browser = 'Firefox';
-  else if (/edg/i.test(ua)) browser = 'Edge';
+  if (/(chromium|crios)/i.test(ua) && !/(edge|edga|opr)/i.test(ua)) browser = 'Chrome / Chromium';
+  else if (/(firefox|fxios)/i.test(ua)) browser = 'Firefox';
+  else if (/(edg)/i.test(ua)) browser = 'Edge';
+  else if (/(opr)/i.test(ua)) browser = 'Opera';
+  else if (/(safari)/i.test(ua) && !/(chromium|chrome)/i.test(ua)) browser = 'Safari';
+  else if (/(webkit)/i.test(ua)) browser = 'WebKit';
 
   return { type, os, browser };
 }

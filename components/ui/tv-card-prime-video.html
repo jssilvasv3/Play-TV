@@ -1,0 +1,81 @@
+<template id="tv-card-prime-video">
+  <style>
+    /* Componente de Card baseado no Design System Prime Video */
+    .tv-card {
+      --card-bg: var(--surface, #1a242f);
+      --card-text: var(--content, #ffffff);
+      --card-radius: var(--radius-card, 4px);
+      --card-shadow: var(--card-shadow, 0 4px 12px rgba(0, 0, 0, 0.6));
+      
+      background-color: var(--card-bg);
+      color: var(--card-text);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .tv-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+    }
+
+    .tv-card__image {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .tv-card__content {
+      padding: 16px;
+    }
+
+    .tv-card__title {
+      font-family: var(--font-base, "Amazon Ember", sans-serif);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0;
+      color: var(--content, #ffffff);
+    }
+
+    .tv-card__subtitle {
+      font-family: var(--font-base, "Amazon Ember", sans-serif);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.4;
+      margin: 4px 0 0;
+      color: var(--content-secondary, #dbdbdb);
+    }
+
+    .tv-card__actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+  </style>
+  <div class="tv-card">
+    <img src="https://picsum.photos/400/225?random=1" alt="Filme Exemplo" class="tv-card__image">
+    <div class="tv-card__content">
+      <h3 class="tv-card__title">Filme Exemplo</h3>
+      <p class="tv-card__subtitle">2024 · 2h 15min · Aventura</p>
+      <div class="tv-card__actions">
+        <button class="tv-button tv-button--primary">Assistir</button>
+        <button class="tv-button tv-button--secondary">Trailer</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  class TvCardPrimeVideo extends HTMLElement {
+    connectedCallback() {
+      // Inicialização do componente
+    }
+  }
+
+  if (!customElements.get('tv-card-prime-video')) {
+    customElements.define('tv-card-prime-video', TvCardPrimeVideo);
+  }
+</script>

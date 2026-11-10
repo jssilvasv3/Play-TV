@@ -182,8 +182,18 @@ function rewriteMediaPlaylist(text, sourceUrl, proxyBase) {
     .join('\n');
 }
 
-// Global de telemetria
-const ADMIN_SECRET = 'playtv_sec_@Pmpo1516_cf_worker_key_2026';
+// Global de telemetria — lê segredo em runtime (env não existe no escopo do módulo)
+function getAdminSecret() {
+  return (typeof env !== 'undefined' && env.HMAC_SECRET) || 'playtv_sec_@Pmpo1516_cf_worker_key_2026';
+}
+
+function getAdminPassword() {
+  return (typeof env !== 'undefined' && env.ADMIN_PASSWORD) || '@Pmpo1516';
+}
+
+function getValidPass() {
+  return (typeof env !== 'undefined' && env.VALID_PASS) || '@Pmpo1516';
+}
 
 async function generateAdminToken() {
   const exp = Date.now() + 12 * 3600 * 1000; // 12 horas
@@ -191,7 +201,7 @@ async function generateAdminToken() {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',
-    enc.encode(ADMIN_SECRET),
+    enc.encode(getAdminSecret()),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -220,7 +230,7 @@ async function verifyAdminToken(authHeader) {
     const enc = new TextEncoder();
     const key = await crypto.subtle.importKey(
       'raw',
-      enc.encode(ADMIN_SECRET),
+      enc.encode(getAdminSecret()),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['verify']
@@ -428,7 +438,7 @@ export async function onRequest(context) {
     const user = String(body.user || '').trim();
     const pass = String(body.pass || '').trim();
 
-    if (user === 'admin' && pass === '@Pmpo1516') {
+    if (user === 'admin' && (pass === getAdminPassword() || '@Pmpo1516')) {
       const token = await generateAdminToken();
       return new Response(JSON.stringify({ ok: true, token }), {
         status: 200,
@@ -458,12 +468,18 @@ export async function onRequest(context) {
 
     const activeDevices = [];
     const deviceCounts = { tv: 0, mobile: 0, desktop: 0 };
+    const deviceCountsDetailed = {};
     const channelCounts = {};
 
     for (const [id, dev] of globalTelemetry.devices.entries()) {
       if (now - dev.lastSeen <= 65000) {
         activeDevices.push(dev);
-        if (dev.type === 'Smart TV') deviceCounts.tv++;
+        
+        // Contagem detalhada
+        const type = dev.type || 'Desconhecido';
+        deviceCountsDetailed[type] = (deviceCountsDetailed[type] || 0) + 1;
+
+        if (dev.type === 'Fire TV / Apple TV' || dev.type === 'Roku' || dev.type === 'NVIDIA Shield' || dev.type === 'Xiaomi / Android TV' || dev.type === 'OnePlus' || dev.type === 'Humax' || dev.type === 'Popcorn / Ouya' || dev.type === 'Android TV / Box') deviceCounts.tv++;
         else if (dev.type === 'Celular' || dev.type === 'Tablet') deviceCounts.mobile++;
         else deviceCounts.desktop++;
 
@@ -496,6 +512,7 @@ export async function onRequest(context) {
       peakTime: globalTelemetry.peakTime || 'Hoje',
       topChannel: ranking.length > 0 ? ranking[0] : null,
       deviceCounts,
+      deviceCountsDetailed,
       ranking: ranking.slice(0, 5),
       devices: activeDevices.sort((a, b) => b.lastSeen - a.lastSeen),
       chart: { labels, values },
