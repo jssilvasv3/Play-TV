@@ -427,6 +427,14 @@ table.devices-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 
 /* Top canais lista */
+.top-channels-list {
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 8px;
+  scrollbar-color: var(--text-muted) transparent;
+  scrollbar-width: thin;
+}
 .top-channel-item {
   display: flex;
   align-items: center;

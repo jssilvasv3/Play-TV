@@ -1672,7 +1672,7 @@ function openTermsModal() {
           </p>
           <ul>
             <li><strong>Inexistência de Servidores de Streaming:</strong> O Play TV <strong>NÃO armazena, NÃO hospeda, NÃO faz upload, NÃO transcodifica e NÃO retransmite</strong> qualquer sinal de canal de televisão, fluxo de vídeo ou áudio. A plataforma não possui servidores próprios de mídia.</li>
-            <li><strong>Origem Aberta e Pública dos Links:</strong> Todo o catálogo, logotipos e fluxos HLS (.m3u8) exibidos provêm de fontes públicas abertas e gratuitas disponíveis livremente na internet, organizadas de forma comunitária e voluntária em repositórios abertos (como o projeto público internacional <em>iptv-org</em> no GitHub) e diretamente por emissoras de sinal aberto.</li>
+            <li><strong>Origem Aberta e Pública dos Links:</strong> Todo o catálogo, logotipos e fluxos HLS (.m3u8) exibidos provêm de fontes públicas abertas e gratuitas disponíveis livremente na internet, organizadas de forma comunitária e voluntária em repositórios abertos e diretamente por emissoras de sinal aberto.</li>
             <li><strong>Marco Civil da Internet (Lei nº 12.965/2014):</strong> A aplicação atua em estrita consonância com o Artigo 19 do Marco Civil da Internet como mera intermediadora de conexões técnicas e provedora de interface de agregação de hiperlinks públicos já existentes.</li>
           </ul>
         </section>
