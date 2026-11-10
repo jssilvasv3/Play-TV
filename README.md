@@ -16,6 +16,12 @@ node server.js
 ```
 Acesse em: `http://localhost:5500` ou no painel administrativo em `http://localhost:5500/admin.html`.
 
+## Carregamento de imagens
+
+Os logotipos M3U, thumbnails e bandeiras são carregados progressivamente conforme se aproximam da tela. O gerenciador deduplica URLs durante o carregamento, limita a concorrência e a reduz enquanto há previews de vídeo ativos. A cascata de imagens dos cartões tenta a thumbnail configurada, o logo M3U e, para IDs compatíveis, a thumbnail do YouTube.
+
+O navegador mantém em `localStorage` um índice LRU limitado a 400 URLs, com sucesso e falhas temporárias; os arquivos de imagem continuam sujeitos ao cache HTTP normal do navegador. Falhas expiram em dois minutos e os registros de sucesso em 30 dias.
+
 ## Verificação de Qualidade Visual
 
 ```bash

@@ -85,12 +85,17 @@ function parseM3U(text) {
       cur.link = line; items.push(cur); cur = null;
     }
   }
-  const channels = items.map(it => ({
-    id: (it.attributes['tvg-id'] || it.attributes['tvg-name'] || it.title || it.link).toUpperCase(),
-    name: (it.attributes['tvg-name'] || it.title || it.link).toUpperCase(),
-    logo: it.attributes['tvg-logo'] || '',
-    sources: [{ title: it.title, link: it.link, groupTitle: it.groupTitle }],
-  }));
+  const channels = items.map(it => {
+    const displayName = (it.attributes['tvg-name'] || it.title || '').trim();
+    return {
+      id: (it.attributes['tvg-id'] || it.attributes['tvg-name'] || it.title || it.link).toUpperCase(),
+      name: !displayName || /^[a-z][a-z\d+.-]*:\/\//i.test(displayName)
+        ? 'CANAL SEM NOME'
+        : displayName.toUpperCase(),
+      logo: it.attributes['tvg-logo'] || '',
+      sources: [{ title: it.title, link: it.link, groupTitle: it.groupTitle }],
+    };
+  });
   return mergeChannels(channels);
 }
 /* _mergeChannels do MediaProvider: junta fontes com o mesmo id. */
@@ -146,12 +151,7 @@ if (settings.themeColor === 'var(--accent)' || settings.themeColor === '#034c26'
 }
 function saveSettings() { store.set('playtv.settings', settings); }
 
-/* ================= Sistema de Imagens em Cascata (Thumbnails & Logos) =================
-   Ordem de prioridade:
-   1. Thumbnail em tempo real (R2/FFmpeg) — se configurado e disponível
-   2. Logotipo oficial da playlist (tvg-logo)
-   3. Fallback inteligente (YouTube thumbnails ou ícone TV padrão)
-   ================= */
+/* ================= Sistema de Imagens (thumbnails e logos) ================= */
 
 let thumbs = {}; // channelId -> url da imagem (carregado de thumbs.json)
 
@@ -161,28 +161,22 @@ async function loadThumbs() {
     const baseUrl = settings.thumbBase.replace(/\/+$/, '');
     const res = await fetch(`${baseUrl}/thumbs.json`, { cache: 'no-store' });
     if (res.ok) {
-      thumbs = await res.json();
-      // console.log(`[thumbs] ${Object.keys(thumbs).length} imagens carregadas do R2`);
+      const data = await res.json();
+      thumbs = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
     }
   } catch (err) {
-    // console.warn('[thumbs] Falha ao carregar thumbs.json:', err.message);
     thumbs = {};
   }
 }
 
-// Retorna a melhor imagem disponível para o canal
+// Retorna candidatos ordenados; o gerenciador avança quando uma imagem falha.
 function thumbFor(c) {
-  if (!c) return '';
-  // 1. Prioridade: Thumbnail real do canal (se existir no cache do R2)
-  if (thumbs[c.id]) return thumbs[c.id];
-  
-  // 2. Fallback: Se o ID parece um ID de vídeo do YouTube, tenta a thumb do YT
-  if (c.id && c.id.length === 11 && /^[a-zA-Z0-9_-]{11}$/.test(c.id)) {
-    return `https://i.ytimg.com/vi/${c.id}/hqdefault.jpg`;
+  if (!c) return [];
+  const candidates = [thumbs[c.id], c.logo];
+  if (c.id && /^[a-zA-Z0-9_-]{11}$/.test(c.id)) {
+    candidates.push(`https://i.ytimg.com/vi/${c.id}/hqdefault.jpg`);
   }
-  
-  // 3. Fallback: Logotipo da playlist M3U (já filtrado no channelCard)
-  return ''; 
+  return [...new Set(candidates.map(url => imageManager.normalize(url || '')).filter(Boolean))];
 }
 
 function applySettings() {
@@ -276,6 +270,230 @@ function hlsSourceUrl(link) {
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+class ImageManager {
+  constructor() {
+    this.cacheKey = 'playtv.imageCache.v1';
+    this.cacheLimit = 400;
+    this.cacheTtl = 30 * 24 * 60 * 60 * 1000;
+    this.failureTtl = 2 * 60 * 1000;
+    this.baseConcurrency = window.matchMedia('(max-width: 700px), (hover: none) and (pointer: coarse)').matches ? 2 : 4;
+    this.storageWarningShown = false;
+    this.concurrency = this.baseConcurrency;
+    this.active = 0;
+    this.queue = [];
+    this.pending = new Map();
+    this.states = new WeakMap();
+    this.observer = 'IntersectionObserver' in window
+      ? new IntersectionObserver(entries => entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        this.observer.unobserve(entry.target);
+        this.load(entry.target);
+      }), { rootMargin: '240px' })
+      : null;
+    if ('MutationObserver' in window && document.documentElement) {
+      this.mutations = new MutationObserver(records => records.forEach(record =>
+        record.addedNodes.forEach(node => {
+          if (node.nodeType === 1) this.observe(node);
+        })));
+      this.mutations.observe(document.documentElement, { childList: true, subtree: true });
+    }
+    this.cache = this.readCache();
+    if (Object.keys(this.cache).length > this.cacheLimit) this.saveCache();
+  }
+
+  normalize(url) {
+    if (typeof url !== 'string' || !url.trim()) return '';
+    try {
+      const parsed = new URL(url, window.location.href);
+      return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  readCache() {
+    try {
+      const value = JSON.parse(localStorage.getItem(this.cacheKey) || '{}');
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    } catch (err) {
+      this.warnStorage(err);
+      return {};
+    }
+  }
+
+  warnStorage(err) {
+    if (this.storageWarningShown) return;
+    this.storageWarningShown = true;
+    console.warn('[images] Persistent cache is unavailable:', err);
+  }
+
+  saveCache() {
+    const now = Date.now();
+    const entries = Object.entries(this.cache)
+      .filter(([, item]) => item && now - item.usedAt < (item.ok ? this.cacheTtl : this.failureTtl))
+      .sort((a, b) => b[1].usedAt - a[1].usedAt)
+      .slice(0, this.cacheLimit);
+    this.cache = Object.fromEntries(entries);
+    try {
+      localStorage.setItem(this.cacheKey, JSON.stringify(this.cache));
+    } catch (err) {
+      this.warnStorage(err);
+    }
+  }
+
+  getCached(url) {
+    const item = this.cache[url];
+    if (!item) return null;
+    const ttl = item.ok ? this.cacheTtl : this.failureTtl;
+    if (Date.now() - item.usedAt >= ttl) {
+      delete this.cache[url];
+      return null;
+    }
+    item.usedAt = Date.now();
+    return item.ok;
+  }
+
+  setPreviewCount(count) {
+    this.concurrency = count
+      ? Math.max(1, this.baseConcurrency - Math.ceil(count / 3))
+      : this.baseConcurrency;
+    this.pump();
+  }
+
+  get pendingCount() {
+    return this.queue.length + this.active;
+  }
+
+  observe(root = document) {
+    const images = root.matches?.('[data-managed-image]') ? [root] : [];
+    images.push(...root.querySelectorAll('[data-managed-image]'));
+    images.forEach(image => {
+      if (this.observer) this.observer.observe(image);
+      else this.load(image);
+    });
+  }
+
+  load(image) {
+    if (!image.isConnected || this.states.has(image)) return;
+    let candidates;
+    try {
+      candidates = JSON.parse(image.dataset.imageCandidates || '[]');
+    } catch (_) {
+      candidates = [];
+    }
+    const urls = [...new Set((Array.isArray(candidates) ? candidates : [])
+      .map(url => this.normalize(url)).filter(Boolean))];
+    this.states.set(image, { urls, index: 0 });
+    image.addEventListener('error', () => {
+      const state = this.states.get(image);
+      if (!state || image.dataset.loadedUrl !== state.urls[state.index]) return;
+      this.cache[image.dataset.loadedUrl] = { ok: false, usedAt: Date.now() };
+      this.saveCache();
+      image.dataset.loadedUrl = '';
+      image.hidden = true;
+      this.showFallback(image);
+      this.tryNext(image);
+    });
+    this.tryNext(image);
+  }
+
+  showFallback(image) {
+    const fallback = image.parentElement?.querySelector('[data-image-fallback]');
+    if (fallback) fallback.hidden = false;
+  }
+
+  useImage(image, url) {
+    if (!image.isConnected || image.dataset.loadedUrl === url) return;
+    image.dataset.loadedUrl = url;
+    image.src = url;
+    image.hidden = false;
+    image.style.visibility = 'visible';
+    const fallback = image.parentElement?.querySelector('[data-image-fallback]');
+    if (fallback) fallback.hidden = true;
+  }
+
+  tryNext(image) {
+    const state = this.states.get(image);
+    if (!state || !image.isConnected) return;
+    if (state.index >= state.urls.length) {
+      const cover = image.closest('.card-cover');
+      image.remove();
+      cover?.remove();
+      return;
+    }
+    const url = state.urls[state.index];
+    const cached = this.getCached(url);
+    if (cached === true) {
+      this.useImage(image, url);
+      return;
+    }
+    if (cached === false) {
+      state.index++;
+      this.tryNext(image);
+      return;
+    }
+    const waiter = { image, state, url };
+    const existing = this.pending.get(url);
+    if (existing) {
+      existing.waiters.add(waiter);
+      existing.priority = Math.min(existing.priority, Number(image.dataset.imagePriority ?? 2));
+      this.queue.sort((a, b) => a.priority - b.priority);
+      return;
+    }
+    const task = {
+      url,
+      priority: Number(image.dataset.imagePriority ?? 2),
+      waiters: new Set([waiter]),
+    };
+    this.pending.set(url, task);
+    this.queue.push(task);
+    this.queue.sort((a, b) => a.priority - b.priority);
+    this.pump();
+  }
+
+  pump() {
+    while (this.active < this.concurrency && this.queue.length) {
+      const task = this.queue.shift();
+      this.active++;
+      const probe = new Image();
+      let settled = false;
+      let timeout;
+      const finish = ok => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        this.active--;
+        this.pending.delete(task.url);
+        this.cache[task.url] = { ok, usedAt: Date.now() };
+        this.saveCache();
+        task.waiters.forEach(({ image, state, url }) => {
+          if (!image.isConnected || state.urls[state.index] !== url) return;
+          if (ok) this.useImage(image, url);
+          else {
+            state.index++;
+            this.tryNext(image);
+          }
+        });
+        this.pump();
+        if (!this.pendingCount) autoStartVisibleCards();
+      };
+      timeout = setTimeout(() => finish(false), 15000);
+      probe.onload = () => finish(true);
+      probe.onerror = () => finish(false);
+      probe.src = task.url;
+    }
+  }
+}
+
+const imageManager = new ImageManager();
+function imageMarkup(candidates, { alt = '', className = '', priority = 2, fallback = '', width = 0, height = 0 } = {}) {
+  const urls = [...new Set((Array.isArray(candidates) ? candidates : [candidates])
+    .map(url => imageManager.normalize(url)).filter(Boolean))];
+  if (!urls.length) return fallback;
+  const dimensions = `${width ? ` width="${width}"` : ''}${height ? ` height="${height}"` : ''}`;
+  return `${fallback ? `<span data-image-fallback>${fallback}</span>` : ''}<img data-managed-image data-image-candidates="${esc(JSON.stringify(urls))}" data-image-priority="${priority}" class="${esc(className)}" alt="${esc(alt)}"${dimensions} referrerpolicy="no-referrer" loading="lazy" style="visibility:hidden">`;
+}
 
 /* ================= Ícones SVG (substituem os emojis) ================= */
 const svg = (p, vb = '0 0 24 24') =>
@@ -533,7 +751,8 @@ function renderHighlights() {
   }
   // Lista vertical: mostra todos os favoritos (a barra discreta permite navegar)
   grid.innerHTML = state.favorites.map(c =>
-    `<div class="highlight" data-id="${esc(c.id)}"><div class="mini-icon" >${c.logo ? `<img src="${esc(c.logo)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML=window.I_tv">` : I.tv}</div><span>${esc(c.name)}</span></div>`).join('');
+    `<div class="highlight" data-id="${esc(c.id)}"><div class="mini-icon">${imageMarkup(c.logo, { priority: 0, fallback: I.tv })}</div><span>${esc(c.name)}</span></div>`).join('');
+  imageManager.observe(grid);
   grid.querySelectorAll('.highlight').forEach(x => x.onclick = () => {
     const ch = findChannel(x.dataset.id); if (ch) openChannelModal(ch);
   });
@@ -559,7 +778,8 @@ function renderSlide() {
   $('heroTitle').textContent = s[0];
   $('heroText').textContent = s[1];
   const art = $('heroArt');
-  art.innerHTML = s[2] === null ? `<img src="${esc(s[3])}" alt="${esc(s[0])}" class="hero-logo-img" referrerpolicy="no-referrer" onerror="this.outerHTML=window.I_tv">` : s[2];
+  art.innerHTML = s[2] === null ? imageMarkup(s[3], { alt: s[0], className: 'hero-logo-img', priority: 0, fallback: I.tv }) : s[2];
+  imageManager.observe(art);
   art.dataset.id = s[4] || '';
   /* A telinha mantém o canal a tocar em silêncio (mini preview em direto). */
   const rch = state.recents.length ? findChannel(s[4] || '') : null;
@@ -628,8 +848,10 @@ function startHeroPreview(ch) {
 function channelCard(c) {
   const grp = (c.sources.find(s => s.groupTitle) || {}).groupTitle || 'Sem grupo';
   const fav = isFavorite(c);
-  const thumb = thumbFor(c);
-  const cover = thumb ? `<div class="card-cover"><img src="${esc(thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>` : '';
+  const imageCandidates = thumbFor(c);
+  const cover = imageCandidates.length
+    ? `<div class="card-cover">${imageMarkup(imageCandidates, { className: 'card-cover-image', priority: 3 })}</div>`
+    : '';
   const country = detectChannelCountry(c);
   const flagBadge = country ? `<span class="badge flag" title="${esc(country.name)}">${renderFlag(country.code, country.flag, 16)}</span>` : '';
   return `<article class="app-card" data-ch="${esc(c.id)}" tabindex="0" role="button" aria-label="${esc(c.name)}">
@@ -637,7 +859,7 @@ function channelCard(c) {
     <div class="badges">${flagBadge}<span class="badge star" data-fav="${esc(c.id)}" title="Favorito">${fav ? I.star : I.starO}</span></div>
     <div class="card-preview"></div>
     <div class="card-head">
-      <div class="app-icon">${c.logo ? `<img src="${esc(c.logo)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML=window.I_tv">` : I.tv}</div>
+      <div class="app-icon">${imageMarkup(c.logo, { priority: 0, fallback: I.tv })}</div>
       <div class="app-name">${esc(c.name)}</div>
       <div class="app-desc">${esc(grp)}${c.sources.length > 1 ? ` · ${c.sources.length} fontes` : ''}</div>
     </div>
@@ -666,12 +888,16 @@ function stopCardPreview(card, removeClass = true) {
   const p = activePreviews.get(card);
   if (!p) return;
   activePreviews.delete(card);
+  imageManager.setPreviewCount(activePreviews.size);
   if (p.retryTimer) clearTimeout(p.retryTimer);
   if (p.hls) { try { p.hls.destroy(); } catch (_) {} }
   p.v.pause(); p.v.removeAttribute('src'); p.v.load(); p.v.remove();
   if (removeClass) card.classList.remove('previewing');
 }
-function stopAllPreviews() { [...activePreviews.keys()].forEach(c => stopCardPreview(c)); }
+function stopAllPreviews() {
+  [...previewTimers.keys()].forEach(card => stopCardPreview(card));
+  [...activePreviews.keys()].forEach(card => stopCardPreview(card));
+}
 
 function scheduleCardPreview(card, ch, immediate = false) {
   if (activePreviews.has(card) || previewTimers.has(card)) return;
@@ -684,7 +910,7 @@ function scheduleCardPreview(card, ch, immediate = false) {
 }
 
 function tryNextVisibleCard() {
-  if (activePreviews.size >= kMaxLivePreviews) return;
+  if (activePreviews.size >= previewLimit()) return;
   const cards = [...document.querySelectorAll('.carousel .app-card[data-ch]')];
   const vp = { top: 0, left: 0, bottom: window.innerHeight, right: window.innerWidth };
   const candidate = cards.find(card => {
@@ -700,7 +926,9 @@ function tryNextVisibleCard() {
 
 function startCardPreview(card, ch) {
   if (activePreviews.has(card)) return;
-  if (activePreviews.size >= kMaxLivePreviews) {
+  const limit = previewLimit();
+  if (activePreviews.size >= limit) {
+    if (imageManager.pendingCount && !card.matches(':hover, :focus-within')) return;
     const oldestCard = activePreviews.keys().next().value;
     if (oldestCard) stopCardPreview(oldestCard);
   }
@@ -717,6 +945,7 @@ function startCardPreview(card, ch) {
   box.innerHTML = ''; box.appendChild(video);
   const entry = { v: video, hls: null, ch };
   activePreviews.set(card, entry);
+  imageManager.setPreviewCount(activePreviews.size);
   let idx = 0;
   const showPreview = () => {
     if (activePreviews.has(card)) card.classList.add('previewing');
@@ -778,12 +1007,12 @@ function autoStartVisibleCards() {
     const r = card.getBoundingClientRect();
     return r.bottom > vp.top && r.top < vp.bottom && r.right > 0 && r.left < vp.right;
   });
-  let started = 0;
+  let slots = Math.max(0, previewLimit() - activePreviews.size);
   visibleCards.forEach((card, i) => {
-    if (started >= kMaxLivePreviews) return;
+    if (!slots || activePreviews.has(card)) return;
     const ch = findChannel(card.dataset.ch);
     if (!ch) return;
-    started++;
+    slots--;
     setTimeout(() => {
       if (!card.isConnected || activePreviews.has(card)) return;
       startCardPreview(card, ch);
@@ -815,7 +1044,7 @@ function bindPreviews(scope) {
       const ch = findChannel(card.dataset.ch);
       if (!ch) return;
       if (entry.isIntersecting) {
-        if (activePreviews.size < kMaxLivePreviews && card.dataset.failed !== 'true') {
+        if (activePreviews.size < previewLimit() && card.dataset.failed !== 'true') {
           scheduleCardPreview(card, ch);
         }
       } else {
@@ -829,17 +1058,35 @@ function bindPreviews(scope) {
   setTimeout(autoStartVisibleCards, 500);
 }
 
+function previewLimit() {
+  if (!imageManager.pendingCount) return kMaxLivePreviews;
+  return Math.min(kMaxLivePreviews, isMobileLike() ? 1 : 2);
+}
+
+let lastCatalogMarkup = '';
 function renderCards() {
   const q = $('searchInput').value.trim();
   const cat = $('catalog');
 
-  if (state.loading) { cat.innerHTML = '<article class="app-card"><div class="app-desc">A carregar canais…</div></article>'; return; }
+  if (state.loading) {
+    stopAllPreviews();
+    if (previewObserver) previewObserver.disconnect();
+    lastCatalogMarkup = '';
+    cat.innerHTML = '<article class="app-card"><div class="app-desc">A carregar canais…</div></article>';
+    return;
+  }
   if (state.error) {
+    stopAllPreviews();
+    if (previewObserver) previewObserver.disconnect();
+    lastCatalogMarkup = '';
     cat.innerHTML = `<article class="app-card"><div class="app-name">Falha ao carregar fonte</div><div class="app-desc">${esc(state.error)}</div><button class="card-btn primary" id="retryLoad">Tentar novamente</button></article>`;
     $('retryLoad').onclick = () => fetchChannels({ force: true }); return;
   }
 
   if (!state.channels.length && !state.favorites.length) {
+    stopAllPreviews();
+    if (previewObserver) previewObserver.disconnect();
+    lastCatalogMarkup = '';
     cat.innerHTML = `<article class="app-card"><div class="app-name">Sem canais</div><div class="app-desc">Abre ${I.gear} Fontes para adicionar uma lista M3U ou uma fonte recomendada.</div><button class="card-btn primary" id="emptySources">Abrir fontes</button></article>`;
     $('emptySources').onclick = openSourcesModal; return;
   }
@@ -904,11 +1151,14 @@ function renderCards() {
   }
 
   if (!rails.length || !rails.some(rail => rail.list.length)) {
+    stopAllPreviews();
+    if (previewObserver) previewObserver.disconnect();
+    lastCatalogMarkup = '';
     cat.innerHTML = `<article class="app-card"><div class="app-name">Sem canais nesta categoria</div><div class="app-desc">Escolha outra categoria ou altere os termos da busca.</div></article>`;
     return;
   }
 
-  cat.innerHTML = rails.map((rail, railIndex) => `
+  const markup = rails.map((rail, railIndex) => `
     <section class="car-section" data-category="${esc(rail.key)}">
       <div class="car-head">
         <button class="car-title" type="button" title="Ver grade de canais de ${esc(rail.title)}">${I.tv} <span>${esc(rail.title)}</span> <small>${rail.list.length}</small> <span class="car-title-action">Ver grade ›</span></button>
@@ -920,6 +1170,10 @@ function renderCards() {
       </div>
       <div class="car-dots"></div>
     </section>`).join('');
+  if (markup === lastCatalogMarkup) return;
+  lastCatalogMarkup = markup;
+  cat.innerHTML = markup;
+  imageManager.observe(cat);
 
   cat.querySelectorAll('.car-section').forEach(section => {
     const carEl = section.querySelector('.carousel');
@@ -1476,7 +1730,7 @@ function openSourcesModal() {
     const c = allC.find(x => x.url === p.url || p.url.endsWith('/' + x.code + '.m3u') || p.name.includes(x.name));
     const flagHtml = c ? renderFlag(c.code, c.flag, 18) + ' ' : '';
     return `<div class="src-row">
-    <span class="grow"><b>${flagHtml}${esc(p.name)}</b><br><small style="color:var(--content-secondary)">${esc(p.url)}</small></span>
+    <span class="grow"><b>${flagHtml}${esc(p.name)}</b></span>
     <button class="src-btn ${p.id === state.currentPlaylistId ? 'primary' : ''}" data-sel="${p.id}">${p.id === state.currentPlaylistId ? 'Ativa' : 'Usar'}</button>
     <button class="src-btn" data-ref="${p.id}">${I.refresh}</button>
     <button class="src-btn" data-del="${p.id}">${I.trash}</button></div>`;
@@ -1649,7 +1903,13 @@ function renderFlag(code, emoji = '', size = 20) {
   const clean = String(code).toLowerCase();
   const cdnCode = clean === 'uk' ? 'gb' : clean;
   const h = Math.round(size * 0.75);
-  return '<img class="flag-icon" src="https://flagcdn.com/w40/' + cdnCode + '.png" srcset="https://flagcdn.com/w80/' + cdnCode + '.png 2x" width="' + size + '" height="' + h + '" alt="' + clean.toUpperCase() + '" loading="lazy" onerror="this.style.display=\'none\'">';
+  return imageMarkup(`https://flagcdn.com/w40/${cdnCode}.png`, {
+    className: 'flag-icon',
+    alt: clean.toUpperCase(),
+    priority: 3,
+    width: size,
+    height: h,
+  });
 }
 window.renderFlag = renderFlag;
 

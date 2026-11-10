@@ -1070,7 +1070,7 @@ body.modal-open {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(10, 16, 24, 0.88);
+  background: rgba(10, 16, 24, 0.28);
 }
 .app-card .card-head,
 .app-card .app-desc,
@@ -1332,7 +1332,7 @@ body.modal-open {
   left: 0 !important;
   width: 100% !important;
 
-  background: rgba(11, 18, 32, 0.75) !important;
+  background: rgba(11, 18, 32, 0.24) !important;
   z-index: 1 !important;
 }
 .allch-grid .card-preview {
@@ -2094,7 +2094,7 @@ body.modal-open {
 }
 
 .carousel .app-card:hover .card-cover img {
-  filter: brightness(0.82);
+  filter: brightness(1);
   transform: scale(1.03);
 }
 
