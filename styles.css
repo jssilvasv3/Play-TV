@@ -3254,7 +3254,7 @@ body.is-tv.hide-cursor * {
       font-size: 12px;
     }
     .carousel {
-      grid-auto-columns: min(82vw, 310px);
+      grid-auto-columns: calc((100% - 10px) / 2);
       gap: 10px;
       padding-bottom: 12px;
     }
