@@ -24,6 +24,16 @@ Os logotipos M3U, thumbnails e bandeiras são carregados progressivamente confor
 
 O navegador mantém em `localStorage` um índice LRU limitado a 400 URLs, com sucesso e falhas temporárias; os arquivos de imagem continuam sujeitos ao cache HTTP normal do navegador. Falhas expiram em dois minutos e os registros de sucesso em 30 dias.
 
+## Métricas do painel administrativo
+
+O painel grava no Cloudflare D1 agregados horários de pico de aparelhos, sessões por canal e duração estimada de audiência (incrementos entre heartbeats limitados a 35 segundos). O histórico não armazena IPs, identificadores de aparelhos nem URLs de transmissão; os nomes de canais são sanitizados antes da gravação. Os dados mais antigos que sete dias são removidos quando há atividade e não aparecem nas consultas do painel. Use o seletor do gráfico para alternar entre as últimas 24 horas e os últimos 7 dias.
+
+Para configurar um ambiente, aplique as migrations D1 antes de publicar:
+
+```bash
+npx wrangler d1 migrations apply play-tv-analytics --remote
+```
+
 ## Verificação de Qualidade Visual
 
 ```bash

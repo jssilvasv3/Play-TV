@@ -275,6 +275,91 @@ let globalTelemetry = {
   },
 };
 
+const ANALYTICS_HOUR_MS = 60 * 60 * 1000;
+const ANALYTICS_DAY_MS = 24 * ANALYTICS_HOUR_MS;
+const ANALYTICS_LOCAL_DAY_OFFSET_MS = 3 * ANALYTICS_HOUR_MS;
+const ANALYTICS_RETENTION_MS = 7 * ANALYTICS_DAY_MS;
+let lastAnalyticsPruneAt = 0;
+
+function analyticsDeviceCategory(type) {
+  const value = String(type || '').toLowerCase();
+  if (value.includes('tv') || value.includes('roku') || value.includes('shield')) return 'tv';
+  if (value.includes('celular') || value.includes('tablet') || value.includes('mobile')) return 'mobile';
+  return 'desktop';
+}
+
+function analyticsChannelName(value) {
+  const name = String(value || '')
+    .replace(/(?:https?:)?\/\/\S+|www\.\S+/gi, '')
+    .replace(/(?:^|\s)(?:[a-z\d-]+\.)+[a-z]{2,}(?::\d+)?(?:\/[^\s]*)?/gi, ' ')
+    .replace(/(?:^|\s)(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?(?:\/[^\s]*)?/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  return name || 'Canal sem nome';
+}
+
+async function pruneAnalytics(db, now) {
+  if (now - lastAnalyticsPruneAt < ANALYTICS_DAY_MS) return;
+  const cutoff = Math.floor((now - ANALYTICS_RETENTION_MS) / ANALYTICS_HOUR_MS) * ANALYTICS_HOUR_MS;
+  await db.batch([
+    db.prepare('DELETE FROM analytics_hours WHERE hour_start < ?').bind(cutoff),
+    db.prepare('DELETE FROM analytics_channels WHERE hour_start < ?').bind(cutoff),
+  ]);
+  lastAnalyticsPruneAt = now;
+}
+
+async function recordAnalytics(db, { now, activeDevices, previousDevice, channel }) {
+  const counts = { tv: 0, mobile: 0, desktop: 0 };
+  for (const device of activeDevices) counts[analyticsDeviceCategory(device.type)]++;
+
+  const currentHour = Math.floor(now / ANALYTICS_HOUR_MS) * ANALYTICS_HOUR_MS;
+  const statements = [
+    db.prepare(`
+      INSERT INTO analytics_hours
+        (hour_start, peak_devices, peak_tv, peak_mobile, peak_desktop, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(hour_start) DO UPDATE SET
+        peak_devices = MAX(peak_devices, excluded.peak_devices),
+        peak_tv = MAX(peak_tv, excluded.peak_tv),
+        peak_mobile = MAX(peak_mobile, excluded.peak_mobile),
+        peak_desktop = MAX(peak_desktop, excluded.peak_desktop),
+        updated_at = excluded.updated_at
+    `).bind(currentHour, activeDevices.length, counts.tv, counts.mobile, counts.desktop, now),
+  ];
+
+  const previousSeen = Number(previousDevice.lastSeen || 0);
+  const elapsed = previousSeen && now - previousSeen <= 65000
+    ? Math.min(35, Math.max(0, Math.floor((now - previousSeen) / 1000)))
+    : 0;
+  const previousChannel = analyticsChannelName(previousDevice.channel);
+  if (elapsed && previousDevice.channel && previousDevice.channel !== 'Navegando') {
+    const previousHour = Math.floor(previousSeen / ANALYTICS_HOUR_MS) * ANALYTICS_HOUR_MS;
+    statements.push(db.prepare(`
+      INSERT INTO analytics_channels (hour_start, channel, sessions, watch_seconds)
+      VALUES (?, ?, 0, ?)
+      ON CONFLICT(hour_start, channel) DO UPDATE SET
+        watch_seconds = watch_seconds + excluded.watch_seconds
+    `).bind(previousHour, previousChannel, elapsed));
+  }
+
+  if (channel !== 'Navegando' && (
+    !previousSeen ||
+    now - previousSeen > 65000 ||
+    analyticsChannelName(previousDevice.channel) !== channel
+  )) {
+    statements.push(db.prepare(`
+      INSERT INTO analytics_channels (hour_start, channel, sessions, watch_seconds)
+      VALUES (?, ?, 1, 0)
+      ON CONFLICT(hour_start, channel) DO UPDATE SET
+        sessions = sessions + 1
+    `).bind(currentHour, channel));
+  }
+
+  await db.batch(statements);
+  await pruneAnalytics(db, now);
+}
+
 async function getTelemetryState() {
   try {
     const cache = caches.default;
@@ -367,6 +452,13 @@ export async function onRequest(context) {
       if (!deviceId) {
         return new Response('Missing deviceId', { status: 400, headers: CORS });
       }
+      const db = context.env?.TELEMETRY_DB;
+      if (!db) {
+        return new Response(JSON.stringify({ error: 'Telemetry database is not configured' }), {
+          status: 503,
+          headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
 
       await getTelemetryState();
       const now = Date.now();
@@ -386,7 +478,7 @@ export async function onRequest(context) {
       const updated = {
         id: deviceId.slice(0, 64),
         type: String(body.deviceType || existing.type || 'Computador').slice(0, 32),
-        channel: String(body.channel || 'Navegando').slice(0, 80),
+        channel: analyticsChannelName(body.channel || 'Navegando'),
         os: String(body.os || existing.os || 'Web').slice(0, 32),
         browser: String(body.browser || existing.browser || '').slice(0, 48),
         ip: ipHeader.split(',')[0].trim().slice(0, 45),
@@ -415,14 +507,27 @@ export async function onRequest(context) {
       const curHour = `${String(new Date().getHours()).padStart(2, '0')}:00`;
       globalTelemetry.hourly[curHour] = Math.max(globalTelemetry.hourly[curHour] || 0, currentActive);
 
+      let historicalAnalyticsStored = true;
+      try {
+        await recordAnalytics(db, {
+          now,
+          activeDevices: Array.from(globalTelemetry.devices.values()),
+          previousDevice: existing,
+          channel: updated.channel,
+        });
+      } catch (error) {
+        historicalAnalyticsStored = false;
+        console.error('Failed to store heartbeat analytics in D1:', error);
+      }
       context.waitUntil ? context.waitUntil(saveTelemetryState()) : saveTelemetryState();
 
-      return new Response(JSON.stringify({ ok: true, active: currentActive }), {
+      return new Response(JSON.stringify({ ok: true, active: currentActive, historicalAnalyticsStored }), {
         status: 200,
         headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), {
+      console.error('Heartbeat request failed:', e);
+      return new Response(JSON.stringify({ error: 'Falha ao registrar heartbeat' }), {
         status: 500,
         headers: { ...CORS, 'Content-Type': 'application/json' },
       });
@@ -463,8 +568,55 @@ export async function onRequest(context) {
       });
     }
 
+    const period = url.searchParams.get('period') || '24h';
+    if (period !== '24h' && period !== '7d') {
+      return new Response(JSON.stringify({ error: 'Período inválido. Use 24h ou 7d.' }), {
+        status: 400,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
+    const db = context.env?.TELEMETRY_DB;
+    if (!db) {
+      return new Response(JSON.stringify({ error: 'Telemetry database is not configured' }), {
+        status: 503,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
+
     await getTelemetryState();
     const now = Date.now();
+    const historyUnit = period === '7d' ? ANALYTICS_DAY_MS : ANALYTICS_HOUR_MS;
+    const dayOffset = period === '7d' ? ANALYTICS_LOCAL_DAY_OFFSET_MS : 0;
+    const currentBucket = Math.floor((now - dayOffset) / historyUnit) * historyUnit + dayOffset;
+    const bucketCount = period === '7d' ? 7 : 24;
+    const historyStart = currentBucket - (bucketCount - 1) * historyUnit;
+    let metricRows;
+    let channelRows;
+    try {
+      await pruneAnalytics(db, now);
+      const metricsResult = await db.prepare(`
+        SELECT hour_start, peak_devices, peak_tv, peak_mobile, peak_desktop
+        FROM analytics_hours
+        WHERE hour_start >= ? AND hour_start <= ?
+        ORDER BY hour_start
+      `).bind(historyStart, now).all();
+      metricRows = metricsResult.results || [];
+      const channelsResult = await db.prepare(`
+        SELECT channel, SUM(sessions) AS sessions, SUM(watch_seconds) AS watch_seconds
+        FROM analytics_channels
+        WHERE hour_start >= ? AND hour_start <= ?
+        GROUP BY channel
+        ORDER BY watch_seconds DESC, sessions DESC
+        LIMIT 10
+      `).bind(historyStart, now).all();
+      channelRows = channelsResult.results || [];
+    } catch (error) {
+      console.error('Failed to read weekly analytics from D1:', error);
+      return new Response(JSON.stringify({ error: 'Não foi possível consultar o histórico de métricas.' }), {
+        status: 503,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
 
     const activeDevices = [];
     const deviceCounts = { tv: 0, mobile: 0, desktop: 0 };
@@ -479,9 +631,7 @@ export async function onRequest(context) {
         const type = dev.type || 'Desconhecido';
         deviceCountsDetailed[type] = (deviceCountsDetailed[type] || 0) + 1;
 
-        if (dev.type === 'Fire TV / Apple TV' || dev.type === 'Roku' || dev.type === 'NVIDIA Shield' || dev.type === 'Xiaomi / Android TV' || dev.type === 'OnePlus' || dev.type === 'Humax' || dev.type === 'Popcorn / Ouya' || dev.type === 'Android TV / Box') deviceCounts.tv++;
-        else if (dev.type === 'Celular' || dev.type === 'Tablet') deviceCounts.mobile++;
-        else deviceCounts.desktop++;
+        deviceCounts[analyticsDeviceCategory(type)]++;
 
         if (dev.channel && dev.channel !== 'Navegando') {
           channelCounts[dev.channel] = (channelCounts[dev.channel] || 0) + 1;
@@ -491,29 +641,54 @@ export async function onRequest(context) {
       }
     }
 
-    const ranking = Object.entries(channelCounts)
+    const activeRanking = Object.entries(channelCounts)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
     const labels = [];
     const values = [];
-    const currentHour = new Date().getHours();
-    for (let i = 23; i >= 0; i--) {
-      const h = (currentHour - i + 24) % 24;
-      const key = `${String(h).padStart(2, '0')}:00`;
-      labels.push(key);
-      values.push(globalTelemetry.hourly[key] || 0);
+    const metricByHour = new Map(metricRows.map(row => [Number(row.hour_start), row]));
+    const metricByDay = new Map();
+    metricRows.forEach(row => {
+      const day = Math.floor((Number(row.hour_start) - ANALYTICS_LOCAL_DAY_OFFSET_MS) / ANALYTICS_DAY_MS)
+        * ANALYTICS_DAY_MS + ANALYTICS_LOCAL_DAY_OFFSET_MS;
+      const current = metricByDay.get(day) || 0;
+      metricByDay.set(day, Math.max(current, Number(row.peak_devices) || 0));
+    });
+    for (let index = 0; index < bucketCount; index++) {
+      const bucket = historyStart + index * historyUnit;
+      if (period === '7d') {
+        labels.push(new Date(bucket).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' }));
+        values.push(metricByDay.get(bucket) || 0);
+      } else {
+        labels.push(new Date(bucket).toLocaleTimeString('pt-BR', { hour: '2-digit', timeZone: 'America/Sao_Paulo' }));
+        values.push(Number(metricByHour.get(bucket)?.peak_devices) || 0);
+      }
     }
-    values[values.length - 1] = Math.max(values[values.length - 1] || 0, activeDevices.length);
+
+    const peakRow = metricRows.reduce((peak, row) =>
+      !peak || Number(row.peak_devices) > Number(peak.peak_devices) ? row : peak, null);
+    const historicalPeak = Number(peakRow?.peak_devices) || 0;
+    const onlineCount = activeDevices.length;
+    const currentIsPeak = onlineCount > historicalPeak;
+    const peakTime = currentIsPeak
+      ? now
+      : peakRow ? Number(peakRow.hour_start) : null;
+    const ranking = channelRows.map(row => ({
+      name: row.channel,
+      count: Number(row.sessions) || 0,
+      watchSeconds: Number(row.watch_seconds) || 0,
+    }));
 
     const responseData = {
-      onlineCount: activeDevices.length,
-      peak: Math.max(globalTelemetry.peak, activeDevices.length),
-      peakTime: globalTelemetry.peakTime || 'Hoje',
-      topChannel: ranking.length > 0 ? ranking[0] : null,
+      period,
+      onlineCount,
+      peak: Math.max(historicalPeak, onlineCount),
+      peakTime,
+      topChannel: activeRanking.length > 0 ? activeRanking[0] : null,
       deviceCounts,
       deviceCountsDetailed,
-      ranking: ranking.slice(0, 5),
+      ranking,
       devices: activeDevices.sort((a, b) => b.lastSeen - a.lastSeen),
       chart: { labels, values },
     };
