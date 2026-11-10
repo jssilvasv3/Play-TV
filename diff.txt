@@ -1,0 +1,6 @@
+
+InputObject                SideIndicator
+-----------                -------------
+d:\play_tv\play_tv2\app.js =>
+d:\play_tv\app.js          <=
+

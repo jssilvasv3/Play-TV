@@ -192,30 +192,27 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
 }
-.kpi-device-grid {
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
 }
-.kpi-device-grid .device-row {
+.kpi-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 6px 12px;
-  background: var(--surface-2);
-  border-radius: 10px;
-  min-width: 200px;
-}
-.kpi-device-grid .device-row-icon {
-  flex: 0 0 16px;
-  height: 16px;
-}
-.kpi-device-grid .device-row strong {
-  font-weight: 800;
-  margin-left: 4px;
+  justify-content: space-between;
 }
 .kpi-value {
   font-size: 32px;
@@ -237,6 +234,12 @@ body {
 }
 .kpi-lg-value {
   font-size: 22px;
+}
+.kpi-device-grid {
+  font-size: 14px;
+  font-weight: 600;
+  gap: 12px;
+  margin-top: 6px;
 }
 .kpi-desc {
   font-size: 12px;
