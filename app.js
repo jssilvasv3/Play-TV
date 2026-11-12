@@ -1634,7 +1634,7 @@ const lockBody = () => document.body.classList.add('modal-open');
 
 /* ================= Modal: Termos de Uso e Política de Privacidade (LGPD) ================= */
 function openTermsModal() {
-  closeModal();
+  // Não fechar o modal anterior — deixar o player visível no fundo, como nos demais modais
   modalContent.innerHTML = `
     <div class="terms-modal-wrapper">
       <div class="terms-header">
