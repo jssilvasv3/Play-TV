@@ -3026,7 +3026,7 @@ html:has(.modal.terms-modal) {
   justify-content: center;
   background: rgba(4, 8, 13, 0.55);
   overflow-y: auto;
-  padding-top: 130px;
+  padding-top: 160px;
   padding-bottom: 0;
   padding-left: 0;
   padding-right: 0;
