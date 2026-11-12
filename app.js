@@ -1634,7 +1634,7 @@ const lockBody = () => document.body.classList.add('modal-open');
 
 /* ================= Modal: Termos de Uso e Política de Privacidade (LGPD) ================= */
 function openTermsModal() {
-  closeModal();
+  // Não fechar o modal anterior — deixar o player visível no fundo, como nos demais modais
   modalContent.innerHTML = `
     <div class="terms-modal-wrapper">
       <div class="terms-header">
@@ -1734,7 +1734,7 @@ function openTermsModal() {
   const btnAccept = $('btnTermsAccept');
   if (btnAccept) {
     btnAccept.onclick = closeModal;
-    btnAccept.focus();
+    $('modalClose')?.focus();
   }
 }
 window.openTermsModal = openTermsModal;
@@ -2358,6 +2358,20 @@ function handleSmartTvDpad(e) {
 
   // 1. Se o modal de vídeo estiver aberto:
   if (modalBackdrop.classList.contains('open')) {
+    if (document.querySelector('.modal.terms-modal')) {
+      if (isBack) {
+        e.preventDefault();
+        closeModal();
+      } else if (isUp || isDown) {
+        e.preventDefault();
+        modalBackdrop.scrollBy({
+          top: (isUp ? -1 : 1) * Math.max(120, modalBackdrop.clientHeight * 0.75),
+          behavior: 'auto'
+        });
+      }
+      return;
+    }
+
     if (isBack) {
       e.preventDefault();
       closeModal();

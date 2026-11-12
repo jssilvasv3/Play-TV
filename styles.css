@@ -3019,33 +3019,62 @@ body.is-tv.hide-cursor * {
    Termos de Uso e Política de Privacidade (Conformidade LGPD)
    ======================================================== */
 html:has(.modal.terms-modal) {
-  overflow-x: clip;
+  overflow-x: hidden;
+}
+.modal-backdrop.open:has(.modal.terms-modal) {
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: rgba(4, 8, 13, 0.55);
+  overflow-y: auto;
+  padding-top: 130px;
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .modal-backdrop.open:has(.modal.terms-modal) {
+    padding-top: 72px;
+  }
 }
 .modal.terms-modal {
-  max-width: 800px !important;
-  height: 88vh !important;
-  max-height: 88vh !important;
+  width: min(880px, 100%) !important;
+  max-width: 880px !important;
   min-height: 0 !important;
+  height: auto !important;
+  max-height: 88vh !important;
+  max-height: 88dvh !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: clip !important;
-  padding: 24px 28px !important;
-  border-radius: var(--radius-panel);
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 24px clamp(16px, 4vw, 48px) !important;
+  border: 0;
+  border-radius: 0;
   background: var(--surface) !important;
-  border: 1px solid var(--divider);
   box-shadow: none !important;
   color: var(--content);
+}
+.modal.terms-modal .modal-close {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 1;
+}
+.modal.terms-modal h2,
+.modal.terms-modal p {
+  display: block !important;
 }
 .modal.terms-modal #modalContent {
   display: flex;
   flex: 1;
   flex-direction: column;
-  min-height: 0;
+  min-width: 0;
 }
 .terms-modal-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 0;
   flex: 1;
   min-width: 0;
 }
@@ -3111,23 +3140,11 @@ html:has(.modal.terms-modal) {
   color: var(--primary);
 }
 .terms-body {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   min-width: 0;
-  overflow-y: auto;
-  padding-right: 8px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--divider) var(--canvas);
-}
-.terms-body::-webkit-scrollbar {
-  width: 6px;
-}
-.terms-body::-webkit-scrollbar-thumb {
-  background: var(--divider);
-  border-radius: 3px;
 }
 .terms-section {
   border-bottom: 1px solid var(--divider);
@@ -3199,12 +3216,11 @@ html:has(.modal.terms-modal) {
 
 @media (max-width: 600px) {
   .modal.terms-modal {
-    height: 92vh !important;
-    max-height: 92vh !important;
-    padding: 18px 14px !important;
+    padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)) !important;
   }
   .terms-header {
     min-width: 0;
+    padding-right: 40px;
   }
   .terms-title-wrap h2 {
     font-size: 17px;
