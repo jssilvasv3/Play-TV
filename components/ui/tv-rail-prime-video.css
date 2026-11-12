@@ -1,0 +1,60 @@
+/* Componente de Rail de Navegação (Carrossel) baseado no Design System Prime Video */
+.tv-rail {
+  --rail-gap: 12px;
+  --rail-card-width: 280px;
+  --rail-card-aspect: 16/9;
+  --rail-bg: var(--canvas, #0f171e);
+  
+  background-color: var(--rail-bg);
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  gap: var(--rail-gap);
+  padding: 24px;
+  scroll-behavior: smooth;
+}
+
+/* Botões de Navegação do Rail */
+.tv-rail__arrow {
+  --arrow-bg: rgba(15, 23, 30, 0.85);
+  --arrow-text: #ffffff;
+  
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--arrow-bg);
+  color: var(--arrow-text);
+  border: 1px solid var(--divider, #2a3a48);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  transition: opacity 0.2s ease;
+}
+
+.tv-rail__arrow--prev { left: 8px; }
+.tv-rail__arrow--next { right: 8px; }
+
+.tv-rail__arrow:hover {
+  background-color: rgba(0, 0, 0, 0.85);
+  border-color: var(--primary, #1399ff);
+}
+
+/* Escondida até o hover na área do rail */
+.tv-rail__arrow {
+  opacity: 0;
+}
+
+.tv-rail:hover .tv-rail__arrow {
+  opacity: 1;
+}
+
+/* Card dentro do Rail */
+.tv-rail__card {
+  flex: 0 0 var(--rail-card-width);
+  position: relative;
+}

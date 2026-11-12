@@ -1,0 +1,59 @@
+/* Tokens Semânticos - Limpeza Visual Play TV
+   Arquétipo: Conteúdo em primeiro lugar (Inspiração visual Prime Video: neutro, denso e silencioso)
+   Calculados e validados pelo MCP Limpeza Visual
+*/
+
+:root {
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --elevated: #f1f1f1;
+  --divider: #33373d;
+  --field-line: #33373d;
+  --content: #00050d;
+  --content-secondary: #666666;
+  --primary: #1399ff; /* Atualizado para Prime Blue principal */
+  --primary-hover: #3aabff;
+  --primary-active: #0072c8;
+  --secondary: #ffd62c;
+  --accent: #1399ff;
+  --on-primary: #FFFFFF;
+  --primary-text: #1399ff;
+  --primary-tonal: rgba(19, 153, 255, 0.15);
+  --success: #00c08a;
+  --warning: #ffba33;
+  --error: #ff4757;
+  --accent-blue: #1399ff;
+  --accent-orange: #ff9900;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --radius-panel: 4px;
+  --radius-field: 4px;
+  --radius-pill: 9999px;
+  --font-base: "Amazon Ember", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body.dark,
+[data-theme="dark"] {
+  --canvas: #0f171e;
+  --surface: #1a242f;
+  --elevated: #232f3e;
+  --divider: #2a3a48;
+  --field-line: #1f2a36;
+  --content: #ffffff;
+  --content-secondary: #dbdbdb;
+  --content-muted: #9ca8b4;
+  --primary: #1399ff;
+  --primary-hover: #3aabff;
+  --primary-active: #0072c8;
+  --secondary: #ffd62c;
+  --accent: #1399ff;
+  --on-primary: #ffffff;
+  --primary-text: #1399ff;
+  --primary-tonal: rgba(19, 153, 255, 0.15);
+  --success: #00c08a;
+  --warning: #ffba33;
+  --error: #ff4757;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --radius-panel: 4px;
+  --radius-field: 4px;
+  --radius-pill: 9999px;
+}

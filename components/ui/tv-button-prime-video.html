@@ -1,0 +1,84 @@
+<template id="tv-button-prime-video">
+  <style>
+    /* Componente de Botão baseado no Design System Prime Video */
+    .tv-button {
+      --btn-bg: var(--primary, #1399ff);
+      --btn-text: var(--on-primary, #ffffff);
+      --btn-radius: var(--radius-field, 4px);
+      --btn-padding-y: 12px;
+      --btn-padding-x: 24px;
+      --btn-height: 44px;
+      
+      font-family: var(--font-base, "Amazon Ember", sans-serif);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: var(--btn-height);
+      padding: var(--btn-padding-y) var(--btn-padding-x);
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid transparent;
+      border-radius: var(--btn-radius);
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .tv-button:hover {
+      --btn-bg: var(--primary-hover, #3aabff);
+    }
+
+    .tv-button:active {
+      --btn-bg: var(--primary-active, #0072c8);
+    }
+
+    /* Variante: Botão de Aluguel/Rental */
+    .tv-button--rental {
+      --btn-bg: var(--surface, #1a242f);
+      --btn-text: var(--content, #ffffff);
+      border: 1px solid var(--primary, #1399ff);
+    }
+
+    .tv-button--rental:hover {
+      --btn-bg: var(--surface-strong, #232f3e);
+      border-color: var(--primary-hover, #3aabff);
+    }
+
+    /* Variante: Pill (Chip) */
+    .tv-button--pill {
+      --btn-radius: var(--radius-pill, 9999px);
+      --btn-padding-y: 6px;
+      --btn-padding-x: 12px;
+      --btn-height: auto;
+      font-size: 12px;
+    }
+  </style>
+  <button class="tv-button">Adicionar à Lista</button>
+</template>
+
+<script>
+  // Registro do componente via Custom Elements (Padrão HTML)
+  class TvButtonPrimeVideo extends HTMLElement {
+    connectedCallback() {
+      // Inicialização do componente, se necessário
+    }
+  }
+
+  if (!customElements.get('tv-button-prime-video')) {
+    customElements.define('tv-button-prime-video', TvButtonPrimeVideo);
+  }
+</script>
+
+<!-- Documentação de Uso -->
+<!--
+  <template id="tv-button-prime-video"></template>
+  <script>
+    // Uso básico no HTML
+    // const template = document.getElementById('tv-button-prime-video');
+    // const button = document.importNode(template.content, true);
+    // document.body.appendChild(button);
+  </script>
+-->

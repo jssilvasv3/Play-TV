@@ -1,3 +1,9 @@
 name = "play-tv-proxy"
 compatibility_date = "2026-09-14"
-main = "src/index.js"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "TELEMETRY_DB"
+database_name = "play-tv-analytics"
+database_id = "aff39800-3e4f-460e-85d3-14b06894bdb1"
+migrations_dir = "migrations"
