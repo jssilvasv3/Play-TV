@@ -2358,6 +2358,20 @@ function handleSmartTvDpad(e) {
 
   // 1. Se o modal de vídeo estiver aberto:
   if (modalBackdrop.classList.contains('open')) {
+    if (document.querySelector('.modal.terms-modal')) {
+      if (isBack) {
+        e.preventDefault();
+        closeModal();
+      } else if (isUp || isDown) {
+        e.preventDefault();
+        modalBackdrop.scrollBy({
+          top: (isUp ? -1 : 1) * Math.max(120, modalBackdrop.clientHeight * 0.75),
+          behavior: 'auto'
+        });
+      }
+      return;
+    }
+
     if (isBack) {
       e.preventDefault();
       closeModal();
