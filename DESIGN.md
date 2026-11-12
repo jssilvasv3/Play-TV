@@ -146,8 +146,10 @@ Inspirado na experiência de reprodução do Prime Video:
 - **Termos — Referência visual:** Inspirado no Amazon Prime Video, usa exclusivamente tema escuro, sem brilho ou sombra decorativa e sem cards dentro do modal. As seções permanecem planas e separadas por divisores.
 - **Termos — Destaques:** Azul é a única cor decorativa; o ícone e os badges são monocromáticos. Não usar verde ou roxo nos badges.
 - **Termos — Leitura e rolagem:** O conteúdo ocupa a janela inteira, sem caixa central nem rolagem aninhada. O documento rola como uma página normal, começa no topo e não causa rolagem horizontal.
+- **Termos — Botões visíveis:** O painel dos Termos começa abaixo da barra superior para não cobrir as ações da página; o rodapé com "Entendi e Concordo" fica visível ao rolar o conteúdo.
 - **Referência aprovada:** `app.js` (`openTermsModal`) e `styles.css` (`.modal.terms-modal`).
 - **Rolagem:** A barra pertence à página inteira; o corpo dos Termos não cria uma área de rolagem própria.
+- **Fundo do player:** O player de vídeo permanece visível no fundo enquanto o painel dos Termos está aberto; `openTermsModal()` não chama `closeModal()`.
 
 ---
 

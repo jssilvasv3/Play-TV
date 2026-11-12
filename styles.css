@@ -3023,12 +3023,20 @@ html:has(.modal.terms-modal) {
 }
 .modal-backdrop.open:has(.modal.terms-modal) {
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   background: rgba(4, 8, 13, 0.55);
   overflow-y: auto;
-  padding: 0;
+  padding-top: 130px;
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .modal-backdrop.open:has(.modal.terms-modal) {
+    padding-top: 72px;
+  }
 }
 .modal.terms-modal {
   width: min(880px, 100%) !important;
