@@ -3023,7 +3023,9 @@ html:has(.modal.terms-modal) {
 }
 .modal.terms-modal {
   max-width: 800px !important;
+  height: 88vh !important;
   max-height: 88vh !important;
+  min-height: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: clip !important;
@@ -3033,6 +3035,12 @@ html:has(.modal.terms-modal) {
   border: 1px solid var(--divider);
   box-shadow: none !important;
   color: var(--content);
+}
+.modal.terms-modal #modalContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 .terms-modal-wrapper {
   display: flex;
@@ -3191,6 +3199,7 @@ html:has(.modal.terms-modal) {
 
 @media (max-width: 600px) {
   .modal.terms-modal {
+    height: 92vh !important;
     max-height: 92vh !important;
     padding: 18px 14px !important;
   }
