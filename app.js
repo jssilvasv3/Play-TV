@@ -1734,7 +1734,7 @@ function openTermsModal() {
   const btnAccept = $('btnTermsAccept');
   if (btnAccept) {
     btnAccept.onclick = closeModal;
-    btnAccept.focus();
+    $('modalClose')?.focus();
   }
 }
 window.openTermsModal = openTermsModal;

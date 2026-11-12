@@ -3021,31 +3021,51 @@ body.is-tv.hide-cursor * {
 html:has(.modal.terms-modal) {
   overflow-x: clip;
 }
+.modal-backdrop.open:has(.modal.terms-modal) {
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: var(--surface);
+  overflow-y: auto;
+  padding: 0;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .modal.terms-modal {
-  max-width: 800px !important;
-  height: 88vh !important;
-  max-height: 88vh !important;
-  min-height: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  height: auto !important;
+  max-height: none !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: clip !important;
-  padding: 24px 28px !important;
-  border-radius: var(--radius-panel);
+  overflow: visible !important;
+  padding: 24px clamp(16px, 5vw, 64px) !important;
+  border: 0;
+  border-radius: 0;
   background: var(--surface) !important;
-  border: 1px solid var(--divider);
   box-shadow: none !important;
   color: var(--content);
+}
+.modal.terms-modal .modal-close {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 1;
+}
+.modal.terms-modal h2,
+.modal.terms-modal p {
+  display: block !important;
 }
 .modal.terms-modal #modalContent {
   display: flex;
   flex: 1;
   flex-direction: column;
-  min-height: 0;
+  min-width: 0;
 }
 .terms-modal-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 0;
   flex: 1;
   min-width: 0;
 }
@@ -3111,23 +3131,11 @@ html:has(.modal.terms-modal) {
   color: var(--primary);
 }
 .terms-body {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   min-width: 0;
-  overflow-y: auto;
-  padding-right: 8px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--divider) var(--canvas);
-}
-.terms-body::-webkit-scrollbar {
-  width: 6px;
-}
-.terms-body::-webkit-scrollbar-thumb {
-  background: var(--divider);
-  border-radius: 3px;
 }
 .terms-section {
   border-bottom: 1px solid var(--divider);
@@ -3199,12 +3207,11 @@ html:has(.modal.terms-modal) {
 
 @media (max-width: 600px) {
   .modal.terms-modal {
-    height: 92vh !important;
-    max-height: 92vh !important;
-    padding: 18px 14px !important;
+    padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)) !important;
   }
   .terms-header {
     min-width: 0;
+    padding-right: 40px;
   }
   .terms-title-wrap h2 {
     font-size: 17px;
