@@ -3018,11 +3018,15 @@ body.is-tv.hide-cursor * {
 /* ========================================================
    Termos de Uso e Política de Privacidade (Conformidade LGPD)
    ======================================================== */
+html:has(.modal.terms-modal) {
+  overflow-x: clip;
+}
 .modal.terms-modal {
   max-width: 800px !important;
   max-height: 88vh !important;
   display: flex !important;
   flex-direction: column !important;
+  overflow: clip !important;
   padding: 24px 28px !important;
   border-radius: var(--radius-panel);
   background: var(--surface) !important;
@@ -3035,6 +3039,7 @@ body.is-tv.hide-cursor * {
   flex-direction: column;
   min-height: 0;
   flex: 1;
+  min-width: 0;
 }
 .terms-header {
   display: flex;
@@ -3049,14 +3054,12 @@ body.is-tv.hide-cursor * {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 .terms-icon-shield {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-field);
-  background: var(--elevated);
-  border: 1px solid var(--divider);
-  color: var(--content);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3088,19 +3091,21 @@ body.is-tv.hide-cursor * {
   font-weight: 600;
   padding: 5px 10px;
   letter-spacing: 0.2px;
+  color: var(--primary);
 }
 .terms-badge.green {
-  color: var(--success);
+  color: var(--primary);
 }
 .terms-badge.blue {
-  color: var(--content);
+  color: var(--primary);
 }
 .terms-badge.purple {
-  color: var(--content-secondary);
+  color: var(--primary);
 }
 .terms-body {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   padding-right: 8px;
   display: flex;
@@ -3144,8 +3149,8 @@ body.is-tv.hide-cursor * {
 .terms-section p {
   margin: 0 0 8px;
   color: var(--content-secondary);
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.65;
 }
 .terms-section p:last-child {
   margin-bottom: 0;
@@ -3154,8 +3159,8 @@ body.is-tv.hide-cursor * {
   margin: 8px 0 8px 18px;
   padding: 0;
   color: var(--content-secondary);
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.65;
 }
 .terms-section li {
   margin-bottom: 6px;
@@ -3189,6 +3194,9 @@ body.is-tv.hide-cursor * {
     max-height: 92vh !important;
     padding: 18px 14px !important;
   }
+  .terms-header {
+    min-width: 0;
+  }
   .terms-title-wrap h2 {
     font-size: 17px;
   }
@@ -3201,6 +3209,7 @@ body.is-tv.hide-cursor * {
   .terms-badge {
     font-size: 10px;
     padding: 3px 0;
+    max-width: 100%;
   }
   .terms-section {
     padding: 12px 0 16px;

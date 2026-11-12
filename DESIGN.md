@@ -143,8 +143,10 @@ Inspirado na experiência de reprodução do Prime Video:
 ---
 
 ### 3.5. Modais de Conteúdo (Termos de Uso, Configurações e Fontes)
-- **Estrutura com Abas e Cards Internos:** Em vez de blocos maçantes de texto corrido, as informações são organizadas em caixas com bordas sutis de 1px (`rgba(255, 255, 255, 0.06)`).
-- **Badges Indicadores:** Selos arredondados (pills) em tons suaves de verde, azul e roxo para destacar conformidade jurídica (LGPD, Zero Rastreamento, Mero Indexador).
+- **Termos — Referência visual:** Inspirado no Amazon Prime Video, usa exclusivamente tema escuro, sem brilho ou sombra decorativa e sem cards dentro do modal. As seções permanecem planas e separadas por divisores.
+- **Termos — Destaques:** Azul é a única cor decorativa; o ícone e os badges são monocromáticos. Não usar verde ou roxo nos badges.
+- **Termos — Leitura e rolagem:** Texto jurídico legível em desktop e celular, com a primeira seção visível no início e sem rolagem horizontal.
+- **Referência aprovada:** `app.js` (`openTermsModal`) e `styles.css` (`.modal.terms-modal`).
 - **Scrollbar Personalizada:** Barra de rolagem fina (6px) em tom escuro (`#31404f`) que não polui visualmente a leitura.
 
 ---
