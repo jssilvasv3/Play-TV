@@ -3019,7 +3019,7 @@ body.is-tv.hide-cursor * {
    Termos de Uso e Política de Privacidade (Conformidade LGPD)
    ======================================================== */
 html:has(.modal.terms-modal) {
-  overflow-x: clip;
+  overflow: hidden;
 }
 .modal-backdrop.open:has(.modal.terms-modal) {
   align-items: flex-start;
