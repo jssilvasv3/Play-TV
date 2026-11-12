@@ -3019,28 +3019,29 @@ body.is-tv.hide-cursor * {
    Termos de Uso e Política de Privacidade (Conformidade LGPD)
    ======================================================== */
 html:has(.modal.terms-modal) {
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .modal-backdrop.open:has(.modal.terms-modal) {
   align-items: flex-start;
-  justify-content: flex-start;
-  background: var(--surface);
+  justify-content: center;
+  background: rgba(4, 8, 13, 0.55);
   overflow-y: auto;
   padding: 0;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
 .modal.terms-modal {
-  width: 100% !important;
-  max-width: none !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
+  width: min(880px, 100%) !important;
+  max-width: 880px !important;
+  min-height: 0 !important;
   height: auto !important;
-  max-height: none !important;
+  max-height: 88vh !important;
+  max-height: 88dvh !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: visible !important;
-  padding: 24px clamp(16px, 5vw, 64px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 24px clamp(16px, 4vw, 48px) !important;
   border: 0;
   border-radius: 0;
   background: var(--surface) !important;
